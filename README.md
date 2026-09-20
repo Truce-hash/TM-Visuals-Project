@@ -15,9 +15,9 @@ This project is being developed as part of the ITC327W Work-Integrated Learning 
 - B Lombaard 
 
 ## Tech Stack
-Flutter - mobile application
-ASP.NET - web application
-Supabase - authentication and storage
+- Flutter - Mobile application
+- ASP.NET - Web application
+- Supabase - Authentication and Storage
 
 ## Stakeholder
 TM Visuals — Photography and Videography business, represented by Tshedza Mulaudzi.
