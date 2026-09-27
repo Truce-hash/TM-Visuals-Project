@@ -1,0 +1,7 @@
+# Environment variables and sercrets
+.env/
+*.env/
+
+#Visual Studio folders to ignore
+.vs/
+
