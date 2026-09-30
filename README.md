@@ -10,7 +10,7 @@ This project is being developed as part of the ITC327W Work-Integrated Learning 
 - S Mbasa
 - Z Mvimbi
 - K Matsane
-- KTJ Patsoane
+- KTJ Phatsoane
 - MF Mulaudzi
 - B Lombaard 
 
@@ -20,10 +20,10 @@ This project is being developed as part of the ITC327W Work-Integrated Learning 
 - Supabase - Authentication and Storage
 
 ## Stakeholder
-TM Visuals — Photography and Videography business, represented by Tshedza Mulaudzi.
+TM Visuals — Photography and Film business, represented by Tshedza Mulaudzi.
 
 ## Repository Structure
 This repository contains the Flutter mobile application for the Photographer Website & Client Management Platform.
 
 ## Current Project Stage
-Planning and requirements (Unit 1 / Phase 1)
+Phase 2 - System Design and Interface prototype design
