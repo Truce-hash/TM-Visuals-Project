@@ -3,6 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'viewmodels/portfolio_view_model.dart';
 import 'routes/route_manager.dart';
+import 'viewmodels/admin_profile_viewmodel.dart';
+import 'viewmodels/invoice_list_viewmodel.dart';
+import 'viewmodels/admin_settings_viewmodel.dart';
+import 'views/admin_profile_screen.dart';
+import 'views/invoice_list_screen.dart';
+import 'views/admin_settings_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,18 +27,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If you want the ChangeNotifier available globally across the whole app:
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<PortfolioViewModel>(
           create: (_) => PortfolioViewModel(),
         ),
+        ChangeNotifierProvider(create: (_) => AdminProfileViewModel()),
+        ChangeNotifierProvider(create: (_) => InvoiceListViewModel()),
+        ChangeNotifierProvider(create: (_) => AdminSettingsViewModel()),
       ],
       child: MaterialApp(
         title: 'TM Visuals',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
         initialRoute: Routes.portfolioContent,
+        routes: {
+          '/admin-profile': (context) => AdminProfileScreen(),
+          '/invoices': (context) => InvoiceListScreen(),
+          '/settings': (context) => AdminSettingsScreen(),
+        },
         onGenerateRoute: RouteManager.getRoute,
       ),
     );
