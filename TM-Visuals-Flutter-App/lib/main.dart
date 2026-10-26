@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         title: 'TM Visuals',
         debugShowCheckedModeBanner: false,
         theme: ThemeData.dark(),
-        initialRoute: Routes.portfolioContent,
+        initialRoute: Routes.adminProfile,
         routes: {
           '/admin-profile': (context) => AdminProfileScreen(),
           '/invoices': (context) => InvoiceListScreen(),
