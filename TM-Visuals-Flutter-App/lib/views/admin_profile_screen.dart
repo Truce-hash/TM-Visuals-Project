@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/admin_profile_viewmodel.dart';
+import 'invoice_list_screen.dart';
 
 class AdminProfileScreen extends StatelessWidget {
   @override
@@ -115,24 +116,46 @@ class AdminProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                width: 100,
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[850],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${vm.user.invoices}',
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
-                    SizedBox(height: 10),
-                    Text('Invoices',
-                        style: TextStyle(color: Colors.white, fontSize: 9)),
-                  ],
-                ),
-              ),
+              
+              GestureDetector(
+               onTap: () {
+               Navigator.push(
+                  context,
+                 MaterialPageRoute(
+        builder: (context) => InvoiceListScreen(),
+      ),
+    );
+  },
+  child: Container(
+    width: 100,
+    padding: EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.grey[850],
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${vm.user.invoices}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+        SizedBox(height: 10),
+        Text(
+          'Invoices',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 9,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
               Container(
                 width: 100,
                 padding: EdgeInsets.all(10),
@@ -261,7 +284,7 @@ class AdminProfileScreen extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.w600)),
-                  subtitle: Text('Request, deposit proof , reschedules',
+                  subtitle: Text('Request, deposit proof',
                       style: TextStyle(color: Colors.white54, fontSize: 10)),
                   trailing: Switch(
                     value: vm.bookingAlerts,

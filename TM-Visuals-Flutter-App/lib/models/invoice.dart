@@ -1,6 +1,13 @@
 class Invoice {
-  String reference;
-  String dateCreated;
+  final String reference;
+  final String dateCreated;
 
-  Invoice({required this.reference, required this.dateCreated});
+  const Invoice({required this.reference, required this.dateCreated});
+
+  factory Invoice.fromJson(Map<String, dynamic> json) {
+    return Invoice(
+      reference: json['reference'] ?? '',
+      dateCreated: json['date_created'] ?? '',
+    );
+  }
 }

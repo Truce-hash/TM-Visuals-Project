@@ -18,8 +18,6 @@ class InvoiceListScreen extends StatelessWidget {
             Text('TM ', style: TextStyle(color: Colors.white, fontSize: 20)),
             Text('Visuals',
                 style: TextStyle(color: Colors.amber, fontSize: 20)),
-            SizedBox(width: 8),
-            Icon(Icons.stars, color: Colors.amber),
           ],
         ),
         bottom: PreferredSize(
