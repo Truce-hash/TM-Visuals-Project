@@ -61,11 +61,10 @@
 
                 <select asp-for="Service" class="booking-input">
                     <option value="">Select a service</option>
-                    <option value="Photography">Photography</option>
-                    <option value="Videography">Videography</option>
-                    <option value="Photography & Videography">
-                        Photography &amp; Videography
-                    </option>
+                    @foreach (var service in BookingOptions.Services)
+                    {
+                        <option value="@service">@service</option>
+                    }
                 </select>
 
                 <span asp-validation-for="Service"
@@ -77,12 +76,10 @@
 
                 <select asp-for="EventType" class="booking-input">
                     <option value="">Select an event</option>
-                    <option value="Graduation">Graduation</option>
-                    <option value="Wedding">Wedding</option>
-                    <option value="Birthday">Birthday</option>
-                    <option value="Corporate Event">Corporate Event</option>
-                    <option value="Portrait Shoot">Portrait Shoot</option>
-                    <option value="Other">Other</option>
+                    @foreach (var eventType in BookingOptions.EventTypes)
+                    {
+                        <option value="@eventType">@eventType</option>
+                    }
                 </select>
 
                 <span asp-validation-for="EventType"
@@ -153,7 +150,10 @@
         <div class="field full-field">
             <label>Select a Date</label>
 
-            <input asp-for="Date" type="hidden" id="selectedDate" />
+            <input asp-for="Date"
+                   type="hidden"
+                   id="selectedDate"
+                   value="@Model.Date?.ToString("yyyy-MM-dd")" />
 
             <div class="calendar" id="bookingCalendar">
                 <div class="calendar-header">
@@ -466,11 +466,64 @@
             startInput.addEventListener("change", checkTimes);
             finishInput.addEventListener("change", checkTimes);
 
-            bookingForm.addEventListener("submit", function (event) {
-                if (!checkTimes()) {
-                    event.preventDefault();
-                    startInput.focus();
+            // The calendar's date is a hidden field, which jQuery validation skips,
+            // so check it here and show the message by the calendar.
+            const dateError = document.querySelector('[data-valmsg-for="Date"]');
+
+            function setDateError(message) {
+                dateError.textContent = message;
+                dateError.classList.toggle("field-validation-error", message !== "");
+                dateError.classList.toggle("field-validation-valid", message === "");
+            }
+
+            function clearDateError() {
+                setDateError("");
+            }
+
+            function checkDate() {
+                if (selectedDate) {
+                    clearDateError();
+                    return true;
                 }
+
+                setDateError("Please select a date.");
+                return false;
+            }
+
+            const submitButton = bookingForm.querySelector('button[type="submit"]');
+            const submitButtonText = submitButton.textContent;
+
+            bookingForm.addEventListener("submit", function (event) {
+                const dateOk = checkDate();
+                const timesOk = checkTimes();
+
+                if (!dateOk || !timesOk) {
+                    event.preventDefault();
+
+                    if (!dateOk) {
+                        document.getElementById("bookingCalendar").scrollIntoView(
+                            { behavior: "smooth", block: "center" });
+                    } else {
+                        startInput.focus();
+                    }
+
+                    return;
+                }
+
+                // jQuery validation also runs; only lock the button if the form is valid.
+                if (window.jQuery && !window.jQuery(bookingForm).valid()) {
+                    return;
+                }
+
+                // Stops a double tap from sending the booking twice.
+                submitButton.disabled = true;
+                submitButton.textContent = "Submitting...";
+            });
+
+            // Browser Back can restore the page with the button still locked.
+            window.addEventListener("pageshow", function () {
+                submitButton.disabled = false;
+                submitButton.textContent = submitButtonText;
             });
             // ----------------------------------------------------------------
 
@@ -620,6 +673,7 @@
                                 window.jQuery(selectedDateInput).valid();
                             }
 
+                            clearDateError();
                             updateSelectedDateText();
                             showDayAvailability();
                             checkTimes();
