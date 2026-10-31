@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using TMVisualsWebApp.Models;
 using TMVisualsWebApp.Services;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TMVisualsWebApp.Controllers
 {
@@ -70,22 +72,37 @@ namespace TMVisualsWebApp.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Profile()
         {
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
+            var myBookings = _store.All()
+                .Where(b => string.Equals(b.Email, email, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(b => b.Date)
+                .ToList();
+
+            var first = myBookings.FirstOrDefault();
+
             var user = new UserProfile
             {
-                FullName = "Musa Bonga",
-                Email = "musabonga@gmail.com",
-                PhoneNumber = null,
-                Bookings = _store.All()
+                FullName = first?.Name ?? email.Split('@')[0],
+                Email = email,
+                PhoneNumber = first?.Phone,
+                Bookings = myBookings
             };
 
             return View(user);
         }
 
+        [Authorize]
         public IActionResult BookingStatus(int id)
         {
-            var booking = _store.All().FirstOrDefault(b => b.Id == id);
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
+            var booking = _store.All().FirstOrDefault(b =>
+                b.Id == id &&
+                string.Equals(b.Email, email, StringComparison.OrdinalIgnoreCase));
 
             if (booking == null)
             {

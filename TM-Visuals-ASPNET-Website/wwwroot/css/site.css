@@ -465,6 +465,12 @@ body {
         border-radius: 12px;
     }
 
+.booking-empty {
+    color: #aaa;
+    font-size: 14px;
+    margin: 0;
+}
+
 /* ---------- Booking status page ---------- */
 .booking-page {
     max-width: 700px;
