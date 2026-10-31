@@ -7,6 +7,13 @@ class ContentService {
 
   final SupabaseClient _client;
 
+  /// client_content.access_status is NOT NULL. Use the same words here and
+  /// in any client-side screen that filters on it.
+  static const String accessActive = 'active';
+
+  static const String _contentColumns =
+      'content_id,booking_id,title,delivery_link,uploaded_at';
+
   Future<List<ContentBookingOption>> fetchBookingsForClient(
     String clientId,
   ) async {
@@ -63,7 +70,7 @@ class ContentService {
 
     final rows = await _client
         .from('client_content')
-        .select('content_id,booking_id,title,delivery_link,uploaded_at')
+        .select(_contentColumns)
         .inFilter('booking_id', bookingDetails.keys.toList())
         .order('uploaded_at', ascending: false);
 
@@ -91,8 +98,9 @@ class ContentService {
           'booking_id': bookingId,
           'title': title.trim(),
           'delivery_link': deliveryLink.trim(),
+          'access_status': accessActive,
         })
-        .select('content_id,booking_id,title,delivery_link,uploaded_at')
+        .select(_contentColumns)
         .single();
     return ContentModel.fromMap(Map<String, dynamic>.from(row));
   }
@@ -103,21 +111,39 @@ class ContentService {
     required String deliveryLink,
   }) async {
     _validateLink(deliveryLink);
-    final row = await _client
+    final rows = await _client
         .from('client_content')
         .update({'title': title.trim(), 'delivery_link': deliveryLink.trim()})
         .eq('content_id', content.contentId)
-        .select('content_id,booking_id,title,delivery_link,uploaded_at')
-        .single();
+        .select(_contentColumns);
+
+    // RLS blocks updates silently (0 rows), so check the result.
+    if (rows.isEmpty) {
+      throw const ContentError(
+        'You do not have permission to update this content, or it no longer exists.',
+      );
+    }
+
     return ContentModel.fromMap({
-      ...Map<String, dynamic>.from(row),
+      ...Map<String, dynamic>.from(rows.first),
       'event_type': content.eventType,
       'client_name': content.clientName,
     });
   }
 
   Future<void> deleteContent(String contentId) async {
-    await _client.from('client_content').delete().eq('content_id', contentId);
+    final deleted = await _client
+        .from('client_content')
+        .delete()
+        .eq('content_id', contentId)
+        .select('content_id');
+
+    // RLS blocks deletes silently (0 rows), so check the result.
+    if (deleted.isEmpty) {
+      throw const ContentError(
+        'You do not have permission to delete this content, or it no longer exists.',
+      );
+    }
   }
 
   void _validateLink(String value) {
