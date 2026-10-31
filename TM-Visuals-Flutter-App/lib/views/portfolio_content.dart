@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '/models/portfolio_model.dart';
 import '/viewmodels/portfolio_view_model.dart';
 import '/widgets/portfolio_widgets.dart';
 
@@ -31,7 +32,7 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
     super.dispose();
   }
 
-    void showMessage(String message) {
+  void showMessage(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context)
@@ -40,17 +41,12 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
         SnackBar(
           content: Text(
             message,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
           backgroundColor: const Color(0xFF292929),
         ),
       );
   }
-
-
 
   Future<void> showAddCategoryDialog() async {
     final name = await showDialog<String>(
@@ -64,6 +60,107 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
       await context
           .read<PortfolioViewModel>()
           .addCategory(name, onMessage: showMessage);
+    }
+  }
+
+  Future<void> showManageCategoriesDialog() async {
+    final vm = context.read<PortfolioViewModel>();
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => ListenableBuilder(
+        listenable: vm,
+        builder: (_, __) => AlertDialog(
+          backgroundColor: const Color(0xFF1C1C1C),
+          title: const Text(
+            'Manage Categories',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: SizedBox(
+            width: 320,
+            child: vm.categories.isEmpty
+                ? const Text(
+                    'No categories yet.',
+                    style: TextStyle(color: Colors.white70),
+                  )
+                : ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final c in vm.categories)
+                        ListTile(
+                          title: Text(
+                            c.name,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Rename',
+                                icon: const Icon(Icons.edit, color: _yellow),
+                                onPressed: () => renameCategoryFlow(c),
+                              ),
+                              IconButton(
+                                tooltip: 'Remove',
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () => removeCategoryFlow(c),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close', style: TextStyle(color: _yellow)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> renameCategoryFlow(PortfolioCategory c) async {
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameCategoryDialog(initial: c.name),
+    );
+
+    if (newName != null && mounted) {
+      await context
+          .read<PortfolioViewModel>()
+          .renameCategory(c.id, newName, onMessage: showMessage);
+    }
+  }
+
+  Future<void> removeCategoryFlow(PortfolioCategory c) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Remove "${c.name}"?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context
+          .read<PortfolioViewModel>()
+          .removeCategory(c.id, onMessage: showMessage);
     }
   }
 
@@ -89,7 +186,8 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
           leading: IconButton(
             tooltip: 'Back',
             icon: const Icon(Icons.arrow_back),
-            onPressed: vm.isUploading ? null : () => Navigator.maybePop(context),
+            onPressed:
+                vm.isUploading ? null : () => Navigator.maybePop(context),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
@@ -122,7 +220,8 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
                     child: GestureDetector(
                       onTap: (vm.isUploading || file != null)
                           ? null
-                          : () => vm.pickPortfolioContent(onMessage: showMessage),
+                          : () =>
+                              vm.pickPortfolioContent(onMessage: showMessage),
                       child: Container(
                         width: 230,
                         height: 190,
@@ -188,7 +287,8 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
                     child: TextButton.icon(
                       onPressed: vm.isUploading
                           ? null
-                          : () => vm.pickPortfolioContent(onMessage: showMessage),
+                          : () =>
+                              vm.pickPortfolioContent(onMessage: showMessage),
                       icon: const Icon(Icons.swap_horiz, color: _yellow),
                       label: const Text(
                         'Change file',
@@ -298,18 +398,39 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
 
                 const SizedBox(height: 12),
 
-                // ADD CATEGORY BUTTON
+                // ADD / MANAGE CATEGORY BUTTONS
                 Center(
-                  child: OutlinedButton.icon(
-                    onPressed: vm.isUploading ? null : showAddCategoryDialog,
-                    icon: const Icon(Icons.add, color: _yellow),
-                    label: const Text(
-                      'Add Category',
-                      style: TextStyle(color: _yellow),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: _yellow),
-                    ),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed:
+                            vm.isUploading ? null : showAddCategoryDialog,
+                        icon: const Icon(Icons.add, color: _yellow),
+                        label: const Text(
+                          'Add Category',
+                          style: TextStyle(color: _yellow),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _yellow),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: vm.isUploading
+                            ? null
+                            : showManageCategoriesDialog,
+                        icon: const Icon(Icons.edit_outlined, color: _yellow),
+                        label: const Text(
+                          'Manage Categories',
+                          style: TextStyle(color: _yellow),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _yellow),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
@@ -385,6 +506,50 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Owns and disposes its own TextEditingController.
+class _RenameCategoryDialog extends StatefulWidget {
+  const _RenameCategoryDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_RenameCategoryDialog> createState() => _RenameCategoryDialogState();
+}
+
+class _RenameCategoryDialogState extends State<_RenameCategoryDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rename category'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: PortfolioViewModel.maxCategoryLength,
+        onSubmitted: (value) => Navigator.pop(context, value),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }

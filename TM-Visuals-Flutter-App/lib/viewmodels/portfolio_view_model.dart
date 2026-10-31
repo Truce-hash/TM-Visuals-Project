@@ -1,7 +1,3 @@
-
-
-
-
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -155,6 +151,12 @@ class PortfolioViewModel extends ChangeNotifier {
     }
   }
 
+  void _sortCategories() {
+    categories.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
+  }
+
   Future<void> addCategory(
     String categoryName, {
     required void Function(String) onMessage,
@@ -179,28 +181,109 @@ class PortfolioViewModel extends ChangeNotifier {
 
     if (existingIndex != -1) {
       selectedCategoryId = categories[existingIndex].id;
-
       notifyListeners();
-
-      throw const DuplicateCategoryError();
+      onMessage(const DuplicateCategoryError().message);
+      return;
     }
 
     try {
       final inserted = await _service.insertCategory(name);
 
       categories.add(PortfolioCategory.fromMap(inserted));
-      categories.sort(
-        (a, b) => a.name.toLowerCase().compareTo(
-          b.name.toLowerCase(),
-        ),
-      );
+      _sortCategories();
 
       selectedCategoryId = inserted['category_id'].toString();
       notifyListeners();
 
       onMessage('Category added successfully!');
-    } on DuplicateCategoryError catch (e) {
-      onMessage(e.message);
+    } on PostgrestException catch (e) {
+      // 23505 = unique violation (e.g. created by another session)
+      onMessage(
+        e.code == '23505'
+            ? const DuplicateCategoryError().message
+            : friendlyError(e),
+      );
+    } catch (e) {
+      onMessage(friendlyError(e));
+    }
+  }
+
+  Future<void> renameCategory(
+    String id,
+    String newName, {
+    required void Function(String) onMessage,
+  }) async {
+    final name = newName.trim();
+
+    if (name.isEmpty) {
+      onMessage('Please enter a category name.');
+      return;
+    }
+
+    if (name.length > maxCategoryLength) {
+      onMessage(
+        'Category name is too long. Maximum length is $maxCategoryLength characters.',
+      );
+      return;
+    }
+
+    final index = categories.indexWhere((c) => c.id == id);
+    if (index != -1 && categories[index].name == name) {
+      return; // nothing changed
+    }
+
+    final duplicate = categories.any(
+      (c) => c.id != id && c.name.toLowerCase() == name.toLowerCase(),
+    );
+
+    if (duplicate) {
+      onMessage(const DuplicateCategoryError().message);
+      return;
+    }
+
+    try {
+      await _service.updateCategory(id, name);
+
+      if (index != -1) {
+        categories[index] = PortfolioCategory(id: id, name: name);
+      }
+      _sortCategories();
+      notifyListeners();
+
+      onMessage('Category updated.');
+    } on PostgrestException catch (e) {
+      onMessage(
+        e.code == '23505'
+            ? const DuplicateCategoryError().message
+            : friendlyError(e),
+      );
+    } catch (e) {
+      onMessage(friendlyError(e));
+    }
+  }
+
+  Future<void> removeCategory(
+    String id, {
+    required void Function(String) onMessage,
+  }) async {
+    try {
+      await _service.deleteCategory(id);
+
+      categories.removeWhere((c) => c.id == id);
+      if (selectedCategoryId == id) selectedCategoryId = null;
+      notifyListeners();
+
+      onMessage('Category removed.');
+    } on PostgrestException catch (e) {
+      // 23503 = foreign key violation: portfolio items still use this category
+      if (e.code == '23503') {
+        debugPrint('Portfolio error: $e');
+        onMessage(
+          'This category still has portfolio items. Move or delete them first.',
+        );
+      } else {
+        onMessage(friendlyError(e));
+      }
     } catch (e) {
       onMessage(friendlyError(e));
     }
