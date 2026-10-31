@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photography_flutter_application/models/content_model.dart';
 import 'package:photography_flutter_application/viewmodels/content_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -58,7 +59,7 @@ class _AddContentViewState extends State<AddContentView> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ContentViewModel>();
+    final contentViewModel = context.watch<ContentViewModel>();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -70,19 +71,20 @@ class _AddContentViewState extends State<AddContentView> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            if (vm.isLoading && vm.bookings.isEmpty)
+            if (contentViewModel.isLoading && contentViewModel.bookings.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
                   child: CircularProgressIndicator(color: Colors.orange),
                 ),
               )
-            else if (vm.errorMessage != null && vm.bookings.isEmpty)
+            else if (contentViewModel.errorMessage != null &&
+                contentViewModel.bookings.isEmpty)
               Text(
-                vm.errorMessage!,
+                contentViewModel.errorMessage!,
                 style: const TextStyle(color: Colors.redAccent),
               )
-            else if (vm.bookings.isEmpty)
+            else if (contentViewModel.bookings.isEmpty)
               const Text(
                 'This client has no bookings to attach content to.',
                 style: TextStyle(color: Colors.grey),
@@ -90,13 +92,13 @@ class _AddContentViewState extends State<AddContentView> {
             else
               DropdownButtonFormField<String>(
                 initialValue:
-                    vm.bookings.any(
+                    contentViewModel.bookings.any(
                       (booking) => booking.bookingId == _bookingId,
                     )
                     ? _bookingId
                     : null,
                 decoration: const InputDecoration(labelText: 'Booking'),
-                items: vm.bookings
+                items: contentViewModel.bookings
                     .map(
                       (booking) => DropdownMenuItem(
                         value: booking.bookingId,
@@ -128,15 +130,9 @@ class _AddContentViewState extends State<AddContentView> {
                 labelText: 'Delivery link',
                 hintText: 'https://...',
               ),
-              validator: (value) {
-                final uri = Uri.tryParse(value?.trim() ?? '');
-                if (uri == null ||
-                    !uri.isAbsolute ||
-                    (uri.scheme != 'https' && uri.scheme != 'http')) {
-                  return 'Enter a valid http or https link.';
-                }
-                return null;
-              },
+              validator: (value) => isValidDeliveryLink(value ?? '')
+                  ? null
+                  : 'Enter a valid http or https link.',
             ),
             const SizedBox(height: 10),
             const Text(
@@ -145,10 +141,13 @@ class _AddContentViewState extends State<AddContentView> {
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: vm.isSaving || (vm.bookings.isEmpty && !vm.isLoading)
+              onPressed:
+                  contentViewModel.isSaving ||
+                      (contentViewModel.bookings.isEmpty &&
+                          !contentViewModel.isLoading)
                   ? null
                   : _save,
-              child: vm.isSaving
+              child: contentViewModel.isSaving
                   ? const SizedBox(
                       width: 20,
                       height: 20,

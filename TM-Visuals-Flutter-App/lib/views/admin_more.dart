@@ -17,7 +17,7 @@ class AdminMoreScreen extends StatelessWidget {
           for (final item in const [
             ('/add-invoice', 'Upload invoice', Icons.upload_file),
             ('/invoices', 'Invoices', Icons.receipt_long),
-            ('/portfolio-content', 'Portfolio', Icons.photo_library_outlined),
+            ('/portfolio-content', 'Upload Portfolio', Icons.photo_library_outlined),
             ('/portfolio-gallery', 'Portfolio gallery', Icons.collections_outlined),
             ('/clients', 'Clients', Icons.people_outline),
             ('/services', 'Services', Icons.camera_alt_outlined),
@@ -44,7 +44,7 @@ class AdminMoreScreen extends StatelessWidget {
                     style: const TextStyle(color: Colors.redAccent),
                   ),
                 OutlinedButton.icon(
-                  onPressed: vm.busy ? null : vm.signOut,
+                  onPressed: vm.busy ? null : () => _confirmSignOut(context, vm),
                   icon: const Icon(Icons.logout),
                   label: const Text('Sign out'),
                 ),
@@ -55,4 +55,31 @@ class AdminMoreScreen extends StatelessWidget {
       ),
     ),
   );
+
+  Future<void> _confirmSignOut(
+    BuildContext context,
+    AdminAuthViewModel viewModel,
+  ) async {
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSignOut == true) {
+      await viewModel.signOut();
+    }
+  }
 }

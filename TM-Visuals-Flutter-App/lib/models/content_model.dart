@@ -8,6 +8,13 @@ class ContentError implements Exception {
   String toString() => message;
 }
 
+bool isValidDeliveryLink(String value) {
+  final uri = Uri.tryParse(value.trim());
+  return uri != null &&
+      uri.isAbsolute &&
+      (uri.scheme == 'https' || uri.scheme == 'http');
+}
+
 /// One row of the client_content table: a private Google Drive link
 /// delivered to a client for a booking.
 class ContentModel {
@@ -111,7 +118,7 @@ class ContentBookingOption {
 
     return ContentBookingOption(
       bookingId: (map['booking_id'] ?? '').toString(),
-      eventType: (map['event_type'] ?? '').toString(),
+      eventType: (map['event_type'] ?? 'Booking').toString(),
       status: (map['booking_status'] ?? '').toString(),
       clientName: (map['client_name'] ?? profile['full_name'] ?? '').toString(),
     );
