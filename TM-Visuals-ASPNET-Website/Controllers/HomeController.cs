@@ -116,10 +116,14 @@ namespace TMVisualsWebApp.Controllers
         // private static readonly List<ClientContent> contentItems = new() { ... };
 
         // REPLACE MyContent() with:
+        [Authorize]
         public IActionResult MyContent()
         {
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
             var items = _store.All()
-                .Where(b => b.Status == "Confirmed" && b.Date.HasValue)
+                .Where(b => string.Equals(b.Email, email, StringComparison.OrdinalIgnoreCase)
+                         && b.Status == "Confirmed" && b.Date.HasValue)
                 .OrderByDescending(b => b.Date)
                 .Select(b => new ClientContent(b))
                 .ToList();
@@ -127,18 +131,36 @@ namespace TMVisualsWebApp.Controllers
             return View(items);
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult EditDetails()
         {
-            // Use the same UserProfile object your Profile() action uses
-            var profile = new UserProfile { FullName = "Musa Bonga", Email = "musa@example.com", PhoneNumber = null };
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
+            var latest = _store.All()
+                .Where(b => string.Equals(b.Email, email, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(b => b.Date)
+                .FirstOrDefault();
+
+            var profile = new UserProfile
+            {
+                FullName = latest?.Name ?? email.Split('@')[0],
+                Email = email,
+                PhoneNumber = latest?.Phone
+            };
+
             return View(profile);
         }
 
+        [Authorize]
         [HttpPost]
         public IActionResult EditDetails(UserProfile model)
         {
             ModelState.Remove("Bookings");
+
+            // The email is the login, so always use the one from the cookie
+            model.Email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+            ModelState.Remove("Email");
 
             if (!ModelState.IsValid)
             {
