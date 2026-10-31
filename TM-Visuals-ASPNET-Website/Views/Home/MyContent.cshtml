@@ -1,4 +1,5 @@
 ﻿@model List<TMVisualsWebApp.Models.ClientContent>
+@using TMVisualsWebApp.Models
 @{
     ViewData["Title"] = "My Content";
 }
@@ -8,11 +9,9 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a asp-controller="Home" asp-action="Profile">    <!--navigation-->
-                    My Account
-                </a>
+                <a asp-controller="Home" asp-action="Profile">My Account</a>
             </li>
-            <li class="breadcrumb-item active">
+            <li class="breadcrumb-item active" aria-current="page">
                 My Content
             </li>
         </ol>
@@ -23,7 +22,7 @@
     @if (!Model.Any())
     {
         <div class="alert alert-warning">
-            No content available yet.
+            No content available yet. Content appears here once a booking is confirmed.
         </div>
     }
     else
@@ -36,16 +35,12 @@
 
                     <div class="content-card">
 
-                        <h5 class="mb-3">
-                            @item.EventType
-                        </h5>
+                        <h5 class="mb-3">@item.EventType</h5>
 
                         <div class="mb-3">
                             @foreach (var service in item.Services)
                             {
-                                <span class="badge service-badge me-2">
-                                    @service
-                                </span>
+                                <span class="badge service-badge me-2">@service</span>
                             }
                         </div>
 
@@ -53,30 +48,52 @@
                             <strong>Date:</strong>
                             @item.BookingDate.ToString("dd MMMM yyyy")
                         </p>
-                        <p>
-                            <strong>Time:</strong>
-                            @item.StartTime?.ToString(@"hh\:mm") -
-                            @item.FinishTime?.ToString(@"hh\:mm")
-                        </p>
+
+                        @if (item.StartTime.HasValue && item.FinishTime.HasValue)
+                        {
+                            <p>
+                                <strong>Time:</strong>
+                                @item.StartTime.Value.ToString(@"hh\:mm") &ndash;
+                                @item.FinishTime.Value.ToString(@"hh\:mm")
+                            </p>
+                        }
+
                         <p>
                             <strong>Location:</strong>
                             @item.Location
                         </p>
+
+                        @if (item.AccessStatus == ContentAccessStatus.Available
+                                        && item.DeliveryLink is not null)
+                        {
+                            <a href="@item.DeliveryLink"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-download mt-3">
+                                Download Content
+                                <span class="visually-hidden">(opens in a new tab)</span>
+                            </a>
+                        }
+                        else if (item.AccessStatus == ContentAccessStatus.Expired)
+                        {
+                            <p class="text-muted mt-3">
+                                This content has expired and is no longer available.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-warning mt-3">
+                                Content is still being prepared. Download will be available soon.
+                            </p>
+                        }
                     </div>
-                    <a href="@item.DeliveryLink"
-                       target="_blank"
-                       class="btn btn-download mt-3">
-                        Download Content
-                    </a>
+
                 </div>
             }
         </div>
     }
-    <!--navigation-->
     <div class="mt-5">
-        <a asp-controller="Home"
-           asp-action="Profile"
-           class="btn-back">
+        <a asp-controller="Home" asp-action="Profile" class="btn-back">
             Back to My Account
         </a>
     </div>

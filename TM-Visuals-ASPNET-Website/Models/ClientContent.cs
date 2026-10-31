@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace TMVisualsWebApp.Models
 {
     public enum ContentAccessStatus
@@ -8,24 +6,34 @@ namespace TMVisualsWebApp.Models
         Available,
         Expired
     }
-
+    /// <summary>
+    /// A read-only view of a Booking for the "My Content" page.
+    /// Nothing is copied: every value is read from the booking itself.
+    /// </summary>
     public class ClientContent
     {
-        public int ContentId { get; set; }
-        public int BookingId { get; set; }          // matches Booking.Id
+        public ClientContent(Booking booking)
+        {
+            Booking = booking;
+        }
+        public Booking Booking { get; }
+        public int BookingId => Booking.Id;
+        public string EventType => Booking.EventType;
+        public string Location => Booking.Location;
+        public DateTime BookingDate => Booking.Date ?? default;
+        public TimeSpan? StartTime => Booking.StartTime;
+        public TimeSpan? FinishTime => Booking.FinishTime;
+        public string? DeliveryLink => Booking.DeliveryLink;
 
-        public string EventType { get; set; } = string.Empty;
-        public List<string> Services { get; set; } = new();
-        public string Location { get; set; } = string.Empty;
+        // "Photography & Videography" shows as two badges.
+        public IReadOnlyList<string> Services =>
+            Booking.Service.Split(" & ",
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        [DataType(DataType.Date)]
-        public DateTime BookingDate { get; set; }
-
-        public TimeSpan? StartTime { get; set; }
-        public TimeSpan? FinishTime { get; set; }
-
-        [Url]
-        public string? DeliveryLink { get; set; }   // null until the content is ready
-        public ContentAccessStatus AccessStatus { get; set; } = ContentAccessStatus.Pending;
+        // Worked out from the booking, not stored, so it can't go out of date.
+        public ContentAccessStatus AccessStatus =>
+            string.IsNullOrWhiteSpace(Booking.DeliveryLink)
+                ? ContentAccessStatus.Pending
+                : ContentAccessStatus.Available;
     }
 }

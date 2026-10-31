@@ -1,10 +1,10 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using TMVisualsWebApp.Models;
 using TMVisualsWebApp.Services;
-using System.Text.Json;
 
 namespace TMVisualsWebApp.Controllers
 {
@@ -95,48 +95,26 @@ namespace TMVisualsWebApp.Controllers
             return View(booking);
         }
 
+        // DELETE this entire block:
+        // private static readonly List<ClientContent> contentItems = new() { ... };
 
-        private static readonly List<ClientContent> contentItems = new()
-        {
-            new ClientContent
-            {
-                ContentId = 1,
-                BookingId = 1,
-                EventType = "Graduation Shoot",
-                Services = new List<string> { "Photography", "Videography" },
-                BookingDate = new DateTime(2026, 12, 25),
-                StartTime = new TimeSpan(13, 0, 0),
-                FinishTime = new TimeSpan(17, 0, 0),
-                Location = "CUT",
-                DeliveryLink = "https://example.com/download1",
-                AccessStatus = ContentAccessStatus.Available,
-            },
-
-            new ClientContent
-            {
-                ContentId = 2,
-                BookingId = 2,
-                EventType = "Wedding Shoot",
-                Services = new List<string> { "Photography", "Videography" },
-                BookingDate = new DateTime(2026, 12, 31),
-                StartTime = new TimeSpan(10,0,0),
-                FinishTime = new TimeSpan(18,0,0),
-                Location = "Bloem Hall",
-                DeliveryLink = "https://example.com/download2",
-                AccessStatus = ContentAccessStatus.Pending,
-            }
-        };
-
+        // REPLACE MyContent() with:
         public IActionResult MyContent()
         {
-            return View(contentItems);
+            var items = _store.All()
+                .Where(b => b.Status == "Confirmed" && b.Date.HasValue)
+                .OrderByDescending(b => b.Date)
+                .Select(b => new ClientContent(b))
+                .ToList();
+
+            return View(items);
         }
 
         [HttpGet]
         public IActionResult EditDetails()
         {
             // Use the same UserProfile object your Profile() action uses
-            var profile = new UserProfile { FullName = "Musa Bonga", Email = "musa@example.com", PhoneNumber = null};
+            var profile = new UserProfile { FullName = "Musa Bonga", Email = "musa@example.com", PhoneNumber = null };
             return View(profile);
         }
 

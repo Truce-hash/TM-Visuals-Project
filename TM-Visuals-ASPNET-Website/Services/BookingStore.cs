@@ -35,7 +35,9 @@ namespace TMVisualsWebApp.Services
                     Date = new DateTime(2026, 12, 14),
                     StartTime = new TimeSpan(11, 0, 0),
                     FinishTime = new TimeSpan(16, 0, 0),
-                    Status = "Pending"
+                    Status = "Pending",
+                    DeliveryLink = "https://example.com/wedding-gallery",
+
                 },
                 new Booking
                 {
@@ -50,7 +52,43 @@ namespace TMVisualsWebApp.Services
                     Date = new DateTime(2026, 10, 30),
                     StartTime = new TimeSpan(13, 0, 0),
                     FinishTime = new TimeSpan(17, 0, 0),
+                    Status = "Confirmed",
+                    DeliveryLink = null,
+                },
+                new Booking
+                {
+                    Id = 3,
+                    Name = "Thandi Mokoena",
+                    Phone = "0821234567",
+                    Email = "thandi@example.com",
+                    Service = "Photography & Videography",
+                    EventType = "Wedding",
+                    NumberOfPeople = 120,
+                    Budget = 25000m,
+                    Location = "Bloem Hall, Bloemfontein",
+                    Date = new DateTime(2026, 11, 20),
+                    StartTime = new TimeSpan(7, 30, 0),
+                    FinishTime = new TimeSpan(20, 30, 0),
+                    AcceptTerms = true,
                     Status = "Confirmed"
+                },
+                new Booking
+                {
+                    Id = 4,
+                    Name = "Sipho Dlamini",
+                    Phone = "0739876543",
+                    Email = "sipho@example.com",
+                    Service = "Videography",
+                    EventType = "Corporate Event",
+                    NumberOfPeople = 60,
+                    Budget = 8000m,
+                    Location = "Windhoek Conference Centre, Bloemfontein",
+                    Date = new DateTime(2026, 9, 19),
+                    StartTime = new TimeSpan(9, 0, 0),
+                    FinishTime = new TimeSpan(15, 0, 0),
+                    AcceptTerms = true,
+                    Status = "Confirmed",
+                    DeliveryLink = "https://example.com/download-sipho"
                 }
             };
         }

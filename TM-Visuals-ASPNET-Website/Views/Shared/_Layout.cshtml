@@ -10,14 +10,14 @@
     <title>@ViewData["Title"] - TM Visuals</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm tm-navbar">
             <div class="container-fluid">
                 <a class="navbar-brand tm-logo" asp-area="" asp-controller="Home" asp-action="Index">
-                    <span class="tm-logo-top">TM</span>
-                    <span class="tm-logo-bottom">Visuals</span>
+                    <img src="~/images/logo.png" alt="TM Visuals" class="tm-logo-img" />
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,6 +74,33 @@
     <main role="main" class="pb-3">
         @RenderBody()
     </main>
+
+    @if (controller != "Account")
+    {
+        <footer class="tm-footer">
+            <div class="footer-copy">
+                @@2026 -<br />Copyright All<br />Rights<br />Reserved
+            </div>
+
+            <div class="footer-social">
+                <div class="footer-icons">
+                    <a href="https://wa.me/27812345678" class="icon-whatsapp" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="mailto:tmvisuals@gmail.com" class="icon-mail" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
+                    <a href="#" class="icon-tiktok" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="icon-instagram" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+                <p class="footer-disclaimer">Disclaimer: Bookings have 50% deposit</p>
+            </div>
+
+            <div class="footer-contact">
+                Contact Us<br />0812345678
+            </div>
+
+            <div class="footer-brand">
+                <img src="~/images/logo.png" alt="TM Visuals" class="footer-logo-img" />
+            </div>
+        </footer>
+    }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
