@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/admin_profile_viewmodel.dart';
+import '../widgets/admin_bottom_nav.dart';
 
 class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
@@ -313,29 +314,30 @@ class AdminProfileScreen extends StatelessWidget {
       ),
 
       // ---------- Bottom navigation ----------
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.amber,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: vm.navIndex,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          vm.changeNav(index);
-        },
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_outlined), label: 'Content'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined), label: 'Calendar'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   backgroundColor: Colors.amber,
+      //   type: BottomNavigationBarType.fixed,
+      //   currentIndex: vm.navIndex,
+      //   selectedItemColor: Colors.black,
+      //   unselectedItemColor: Colors.black,
+      //   showSelectedLabels: false,
+      //   showUnselectedLabels: false,
+      //   onTap: (index) {
+      //     vm.changeNav(index);
+      //   },
+      //   items: [
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.home_outlined), label: 'Home'),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.menu_book_outlined), label: 'Content'),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.calendar_today_outlined), label: 'Calendar'),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.account_circle_outlined), label: 'Profile'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+      //   ],
+      // ),
+      bottomNavigationBar: const AdminBottomNav(currentIndex: 2),
     );
   }
 }
