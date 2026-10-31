@@ -1,0 +1,442 @@
+from pathlib import Path
+from datetime import date
+import json, re, hashlib
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
+
+ROOT=Path(__file__).resolve().parents[2]
+OUT=ROOT/'output/docx/TM_Visuals_Admin_Features_Code_Guide.docx'
+SOURCES={p.relative_to(ROOT/'lib').as_posix():p.read_text(encoding='utf-8-sig') for p in (ROOT/'lib').rglob('*.dart')}
+doc=Document()
+sec=doc.sections[0]
+sec.page_width=Inches(8.5);sec.page_height=Inches(11)
+sec.top_margin=Inches(.7);sec.bottom_margin=Inches(.7)
+sec.left_margin=Inches(.75);sec.right_margin=Inches(.75)
+sec.header_distance=Inches(.28);sec.footer_distance=Inches(.3)
+for name in ['Normal','Title','Subtitle','Heading 1','Heading 2','Heading 3']:
+    st=doc.styles[name];st.font.name='Calibri';st.font.color.rgb=RGBColor(0,0,0)
+    if st.element.rPr is not None:
+        for c in list(st.element.rPr):
+            if c.tag==qn('w:color'):
+                for attr in [qn('w:themeColor'),qn('w:themeTint'),qn('w:themeShade')]:c.attrib.pop(attr,None)
+doc.styles['Normal'].font.size=Pt(11)
+doc.styles['Normal'].paragraph_format.line_spacing=1.08
+doc.styles['Normal'].paragraph_format.space_after=Pt(5)
+doc.styles['Title'].font.size=Pt(27)
+doc.styles['Title'].paragraph_format.space_after=Pt(12)
+doc.styles['Heading 1'].font.size=Pt(19)
+doc.styles['Heading 1'].paragraph_format.space_after=Pt(10)
+doc.styles['Heading 2'].font.size=Pt(12)
+doc.styles['Heading 2'].paragraph_format.space_before=Pt(9)
+doc.styles['Heading 2'].paragraph_format.space_after=Pt(3)
+for name in ['Heading 1','Heading 2','Heading 3']:
+    doc.styles[name].paragraph_format.keep_with_next=True
+head=sec.header.paragraphs[0];head.text='TM VISUALS   |   ADMIN FEATURE CODE GUIDE'
+for r in head.runs:r.font.size=Pt(8.5);r.font.color.rgb=RGBColor(0,0,0)
+foot=sec.footer.paragraphs[0];foot.alignment=WD_ALIGN_PARAGRAPH.RIGHT
+foot.add_run('31 October 2026   |   Page ').font.size=Pt(8.5)
+field=OxmlElement('w:fldSimple');field.set(qn('w:instr'),'PAGE');foot._p.append(field)
+pages=[];entries=[]
+
+def p(text,boldlead=None):
+    par=doc.add_paragraph()
+    if boldlead and text.startswith(boldlead):par.add_run(boldlead).bold=True;par.add_run(text[len(boldlead):])
+    else:par.add_run(text)
+    return par
+def code(text):
+    par=doc.add_paragraph();par.paragraph_format.space_after=Pt(5)
+    run=par.add_run(text);run.font.name='Consolas';run.font.size=Pt(9)
+    return par
+def page(title,intro=None):
+    if pages:doc.add_page_break()
+    pages.append(title);doc.add_heading(f'{len(pages)}  {title}',level=1)
+    if intro:p(intro)
+def h(title,text=None):
+    doc.add_heading(title,level=2)
+    if text:p(text)
+def say(text):
+    par=p('How to explain it: '+text)
+    par.runs[0].italic=True
+def source(file,needle,after=None):
+    text=SOURCES[file];start=text.find(after) if after else 0
+    assert start>=0,(file,after)
+    ix=text.find(needle,start);assert ix>=0,(file,needle)
+    return text.count('\n',0,ix)+1
+def fn(title,sig,body,file,needle,after=None):
+    h(title);line=source(file,needle,after)
+    code(f'{sig}\nlib/{file}  |  line {line}')
+    p(body);entries.append({'file':file,'symbol':sig,'line':line,'chapter':len(pages)})
+def table(headers,rows,widths):
+    t=doc.add_table(rows=1,cols=len(headers));t.autofit=False;t.alignment=WD_TABLE_ALIGNMENT.CENTER
+    for c,w in zip(t.columns,widths):c.width=Inches(w)
+    for i,label in enumerate(headers):t.rows[0].cells[i].text=label
+    for row in rows:
+        cells=t.add_row().cells
+        for i,val in enumerate(row):cells[i].text=str(val)
+    for rid,row in enumerate(t.rows):
+        for i,cell in enumerate(row.cells):
+            cell.width=Inches(widths[i]);cell.vertical_alignment=WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            pr=cell._tc.get_or_add_tcPr()
+            margins=OxmlElement('w:tcMar')
+            for side in ['top','left','bottom','right']:
+                n=OxmlElement(f'w:{side}');n.set(qn('w:w'),'85');n.set(qn('w:type'),'dxa');margins.append(n)
+            pr.append(margins);b=OxmlElement('w:tcBorders')
+            for side in ['top','left','bottom','right']:
+                n=OxmlElement(f'w:{side}');n.set(qn('w:val'),'single');n.set(qn('w:sz'),'4');n.set(qn('w:color'),'D9D9D9');b.append(n)
+            pr.append(b)
+            shade=OxmlElement('w:shd');shade.set(qn('w:fill'),'243342' if rid==0 else ('F2F5F7' if rid%2==0 else 'FFFFFF'));pr.append(shade)
+            for par in cell.paragraphs:
+                par.paragraph_format.space_after=Pt(2)
+                for run in par.runs:
+                    run.font.size=Pt(10)
+                    if rid==0:run.bold=True;run.font.color.rgb=RGBColor(255,255,255)
+    rep=OxmlElement('w:tblHeader');t.rows[0]._tr.get_or_add_trPr().append(rep)
+    doc.add_paragraph().paragraph_format.space_after=Pt(2)
+    return t
+
+page('Purpose and presentation overview')
+doc.add_paragraph('TM Visuals admin features',style='Title')
+p('A study and presentation guide for Brandon\'s admin calendar, whole-day availability manager and existing invoice PDF upload. The guide explains what each relevant file and function does, how data moves through the application, and what to demonstrate.')
+p('The central design is a separation of responsibilities: views display the interface, viewmodels manage screen state, models describe data, and services communicate with Supabase. main.dart is only the startup entry point.')
+h('A short opening you can use')
+say('My assigned features are the admin calendar, date availability management and uploading existing invoice PDFs. I used the team\'s MVVM structure with Provider, so the screens are separate from state management and database operations. An administrator can inspect bookings, close or reopen an entire date without deleting bookings, and attach a PDF invoice to a booking.')
+h('What this guide covers')
+table(['Feature','What to explain'],[
+('Calendar','Month navigation, booking previews, date colours and loading data.'),
+('Date manager','One availability setting for the whole date and preservation of bookings.'),
+('Invoice upload','Validation, private file storage, invoice metadata and safe retries.'),
+('Supporting code','Admin sign-in, protected routes, shared widgets and bottom navigation.')],[1.35,5.65])
+h('How to study')
+p('Read chapters 2 and 3 first, then follow the calendar, availability and invoice chapters in order. Use the presentation walkthrough and likely questions sections to rehearse. In Word, search for a function name with Ctrl+F or open the Navigation Pane to jump between headings.')
+p('All source paths are relative to the Flutter app folder. Line references were checked against the working tree on 31 October 2026, based on commit 396959b. They may move after later edits. This guide describes current source code; it is not a fresh certification of the hosted database or a live upload test.')
+
+page('Architecture and the flow of data','MVVM means Model View ViewModel. The service layer is an additional boundary for network and Storage work.')
+table(['Layer','Role','Example'],[
+('View','Builds widgets and forwards user actions.','views/calendar.dart'),
+('ViewModel','Stores state and coordinates operations.','viewmodels/calendar_viewmodel.dart'),
+('Model','Represents typed application data.','models/calendar_model.dart'),
+('Service','Reads and writes external data.','services/calendar_service.dart'),
+('Supabase','Provides Auth, Postgres and Storage.','time_slot, date_availability, invoice')],[1,3.2,2.8])
+h('A calendar request from start to finish')
+p('CalendarScreen creates CalendarViewModel with a CalendarDataSource. The viewmodel calls loadMonth and loadAvailability. CalendarService queries Supabase, then CalendarSlot.fromMap converts database maps into objects. The viewmodel saves those results and notifies its listeners. The view rebuilds and displays the returned state.')
+code('User action -> View -> ViewModel -> Service -> Supabase\nSupabase result -> Service -> Model objects -> ViewModel -> View')
+h('How Provider updates the screen')
+p('ChangeNotifier is the base class that lets a viewmodel announce state changes. notifyListeners tells listening widgets that something changed. context.watch<T>() subscribes a widget to that state. context.read<T>() obtains an object without subscribing the caller. Consumer<T> rebuilds a selected part of the UI.')
+h('Why services are injectable')
+p('CalendarDataSource and InvoiceDataSource define contracts. A viewmodel can receive a real Supabase implementation or a fake implementation for a test. This makes it possible to test state changes and error handling without connecting to the live project.')
+h('Why the files are separate')
+p('A colour or layout change belongs in a view or shared widget. A database query change belongs in a service. A rule about when saving is allowed belongs in a viewmodel. A field or database mapping change belongs in a model. This separation makes code easier to explain, review and test.')
+say('Provider connects the screen to its viewmodel. The service retrieves data, the model gives it a clear structure, and the viewmodel tells the screen when to rebuild.')
+
+page('Startup configuration and application setup')
+fn('Start the Flutter application','main() -> Future<void>', 'Initializes the Flutter binding, reads SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY from Dart compile-time defines, and creates a Supabase client if usable values exist. It rejects a key beginning sb_secret_. Initialization failures are captured in error. runApp receives MyApp with either a client or a startup error. No calendar, date-editor or invoice form layout is built here.','main.dart','Future<void> main()')
+fn('Provide shared application state','MyApp constructor and build(context) -> Widget', 'Accepts an optional client, startupError and injectable authService. MultiProvider registers the team\'s shared viewmodels. MaterialApp sets the theme and public root route. With no client it shows SupabaseSetupScreen; with a client it shows AdminEntryScreen. Current team integration registers BookingsViewModel using BookingListViewModel. Those booking classes are integration dependencies, not Brandon\'s calendar implementation.','app.dart','Widget build(')
+fn('Explain missing connection settings','SupabaseSetupScreen.build(context) -> Widget', 'Displays setup instructions when settings are missing or initialization failed. The message is selected using the optional error value. This screen does not connect to Supabase or write configuration. The example file mentioned in its text is currently deleted in the working tree, so check the existing local configuration rather than assuming that example is present.','views/supabase_setup.dart','Widget build(')
+h('How the local configuration is used')
+code('flutter run --dart-define-from-file=config/supabase.local.json')
+p('The build command supplies values from JSON to String.fromEnvironment. The app does not read that JSON dynamically while running. Restart after changing it. Never display the key or the local file contents during a presentation. A public publishable key is intended for a client application, but database access must still be restricted by server-side policies.')
+say('main.dart prepares the connection and starts the app. MyApp configures providers, styling and the first screen. The actual feature screens live under views.')
+
+page('Authentication service and sign in screen')
+fn('Create the authentication service','AdminAuthService(client)', 'Stores the SupabaseClient that all authentication operations use. Supplying the client allows tests or different app hosts to provide the connection rather than creating it inside every function.','services/admin_auth_service.dart','AdminAuthService(this.client)')
+fn('Observe the current user and session changes','changes and userId getters', 'changes exposes client.auth.onAuthStateChange. userId returns the current Auth user UUID or null when signed out. The UUID is used to look up administrator membership. An Auth identity and an application administrator record are two separate things.','services/admin_auth_service.dart','Stream<AuthState> get changes')
+fn('Look up administrator membership','currentAdminId() -> Future<String?>', 'Returns null if no user is signed in. Otherwise queries the current source\'s admins table for admin_id where user_id equals the Auth UUID. maybeSingle allows either one row or no row. A matching row produces an admin ID; no row means the account is not recognized as an administrator. Confirm the live table name before your demo.','services/admin_auth_service.dart','Future<String?> currentAdminId()')
+fn('Sign in and sign out','signIn(email, password) and signOut()', 'signIn trims the email and calls signInWithPassword; it leaves the password unchanged. signOut delegates to Supabase Auth. The service does not render errors or navigate. The viewmodel responds to the resulting session events.','services/admin_auth_service.dart','Future<void> signIn(')
+fn('Collect and validate sign in input','AdminSignInScreen.createState and state build(context)', 'createState creates the screen\'s state object. A GlobalKey<FormState> gives the local submit callback access to validators. Two TextEditingControllers hold the input. The email validator checks for @; the password validator checks that it is not empty. submit calls vm.signIn only if the form validates. Password input is obscured, and vm.busy disables the form and button during a request. vm.error is displayed below the inputs.','views/admin_sign_in.dart','Widget build(',after='class _AdminSignInScreenState')
+fn('Release input controllers','_AdminSignInScreenState.dispose()', 'Disposes the email and password controllers and then calls super.dispose. This releases resources when the sign-in page is removed. It does not sign the user out.','views/admin_sign_in.dart','void dispose()')
+
+page('Authentication viewmodel and session state')
+p('AdminAuthViewModel owns userId, adminId, error, checking and busy. authorized is true only when both IDs are non-null. _version identifies the newest membership check, and _disposed prevents notifications after the viewmodel is removed.')
+fn('Start listening for authentication events','AdminAuthViewModel(service)', 'Subscribes to service.changes and calls check immediately. Each normal event starts another membership check. A stream error invalidates older checks, clears adminId and exposes the error instead of leaving the admin workspace authorized.','viewmodels/admin_auth_viewmodel.dart','AdminAuthViewModel(this.service)')
+fn('Determine whether access is authorized','authorized getter', 'Returns userId != null && adminId != null. This is the UI gate condition. It is not a replacement for Supabase Row Level Security or Storage policies.','viewmodels/admin_auth_viewmodel.dart','bool get authorized')
+fn('Recheck identity and administrator access','check() -> Future<void>', 'Increments _version, gets the current user, and decides whether an already authorized same-user navigator can remain visible while the check runs. A signed-out user needs no membership query. A signed-in user triggers currentAdminId. Only the newest result may update state. Missing membership or a query error removes authorization; finally clears checking and updates listeners.','viewmodels/admin_auth_viewmodel.dart','Future<void> check()')
+fn('Run sign in and sign out operations','signIn(email, password) and signOut()', 'The busy guard blocks duplicate actions. Each method marks itself busy, calls the authentication service, captures an error for the UI and clears busy in finally. Authentication events, rather than the button itself, drive the subsequent membership check and screen selection.','viewmodels/admin_auth_viewmodel.dart','Future<void> signIn(')
+fn('Notify safely and release the subscription','_changed() and dispose()', '_changed calls notifyListeners only while the object is alive. dispose marks it disposed, increments _version so pending checks become stale, cancels the subscription and calls the superclass cleanup.','viewmodels/admin_auth_viewmodel.dart','void _changed()')
+say('Logging in proves who the user is. The membership check then decides whether that user may enter the administrator area. The version counter stops an older request from restoring access after a newer session change.')
+
+page('The admin gate protected routes and draft lifetime')
+fn('Create authentication state for the entry screen','AdminEntryScreen.build(context)', 'Creates AdminAuthViewModel inside ChangeNotifierProvider, using the injected auth service or the real AdminAuthService. Its child is _AdminGate, which listens to that viewmodel.','views/admin_entry.dart','Widget build(',after='class AdminEntryScreen')
+fn('Choose the correct screen and protect the route stack','_AdminGate.build(context)', 'Shows sign-in when userId is null, a spinner during the initial membership check, or an access/error page when authorization is missing. For an authorized user, creates an AddInvoiceViewModel provider and a nested Navigator. The navigator starts at /, which maps to Calendar. Removing this authorized subtree on sign-out removes open protected routes and the in-memory invoice draft.','views/admin_entry.dart','Widget build(',after='class _AdminGate')
+fn('Build a named route','RouteManager.getRoute(settings, client) -> Route', 'Selects a WidgetBuilder by settings.name and returns MaterialPageRoute with the original settings. A DateTime argument selects the date editor. A String argument preselects a booking for invoice upload. Add invoice reads the shared draft viewmodel from Provider. Unknown names produce a page-not-found screen. The router belongs to the authenticated nested Navigator.','routes/route_manager.dart','static Route<dynamic> getRoute(')
+table(['Route','Destination'],[('/ and /calendar','CalendarScreen'),('/date-availability','DateManagerScreen with a DateTime argument'),('/add-invoice','AddInvoiceScreen with an optional booking ID'),('/bookings and /admin-profile','Existing team screens'),('/more','AdminMoreScreen'),('/invoices /services /settings','Existing team screens'),('/portfolio-content /portfolio-gallery /clients','Current team integrations')],[2.65,4.35])
+h('Why the draft provider is above the navigator')
+p('The upload form can close while its viewmodel remains alive in the authorized subtree. Reopening the form can therefore resume an uncertain upload with the same ID and bytes. The provider key includes the user ID. This is temporary in-memory recovery, not a draft saved to a database or disk.')
+
+page('Calendar models and date helpers')
+fn('Make a database date key','dateKey(date) -> String', 'Pads the year, month and day to produce YYYY-MM-DD. It uses the supplied date components rather than converting the date through UTC. The same key is used in filters, the availability map and widget keys. Example: 7 November 2026 becomes 2026-11-07.','models/calendar_model.dart','String dateKey(')
+fn('Find the South African business date','businessToday() -> DateTime', 'Takes the current UTC time, adds two hours and constructs a date-only DateTime from the result. This implements the South African business date assumption used by Today and the initial calendar selection. It is not a general timezone database solution.','models/calendar_model.dart','DateTime businessToday()')
+fn('Decide whether a reservation protects a slot','reservationActive(selection, booking) -> bool', 'Trims and lowercases both statuses. If either is cancelled, canceled, rejected, declined or released, returns false. Otherwise returns true. Unknown statuses are therefore treated conservatively as active. completed is not in the inactive list, so it still counts as active in this implementation.','models/calendar_model.dart','bool reservationActive(')
+fn('Represent one booking in the calendar','CalendarBooking constructor and active getter', 'Stores the booking ID, client display name, event, location, booking status and selection status. All fields are final. active delegates to reservationActive(selectionStatus, status), giving both views one definition of an active reservation.','models/calendar_model.dart','class CalendarBooking')
+fn('Represent a time range and its bookings','CalendarSlot constructor and reserved getter', 'Stores the slot ID, date, start/end strings and a list of CalendarBooking objects. A missing list defaults to empty. reserved returns true when any booking in the list is active. The slot is a time range; it is not the whole-day availability override.','models/calendar_model.dart','class CalendarSlot')
+fn('Convert nested database data into objects','CalendarSlot.fromMap(row) -> CalendarSlot', 'Reads time_slot_id, slot_date, start_time and end_time, then walks booking_slot -> booking -> client -> users to obtain booking details and the client name. It supplies display fallbacks such as Client, Booking and unknown for optional fields. Required IDs and nested booking maps must still have the expected structure.','models/calendar_model.dart','factory CalendarSlot.fromMap(')
+
+page('Calendar service and Supabase queries')
+fn('Define the calendar data contract','CalendarDataSource', 'Requires loadMonth, loadDate, loadAvailability and saveAvailability. Viewmodels depend on this interface so a fake data source can replace the real network service in tests. It contains no query implementation itself.','services/calendar_service.dart','abstract class CalendarDataSource')
+fn('Choose the database client','CalendarService({supabase})', 'Uses a supplied SupabaseClient or the already initialized Supabase.instance.client. Creating this service does not initialize Supabase again.','services/calendar_service.dart','CalendarService({')
+fn('Load a month or a single date','loadMonth(month) and loadDate(date)', 'loadMonth calls _slots from the first day of the chosen month up to the first day of the next month. loadDate uses the chosen date up to the following date. Both use an inclusive start and exclusive end, so month lengths and year boundaries are handled by DateTime.','services/calendar_service.dart','Future<List<CalendarSlot>> loadMonth(')
+fn('Retrieve and map all matching time slots','_slots(from, until) -> Future<List<CalendarSlot>>', 'Queries time_slot and joins booking_slot, booking, client and users in one nested selection. Filters with gte for the start and lt for the end. Orders by date, start time and slot ID. Requests 200 rows at a time, converts each row using CalendarSlot.fromMap and continues until a short page is returned. Stable ordering avoids inconsistent paging when equal start times exist.','services/calendar_service.dart','Future<List<CalendarSlot>> _slots(')
+fn('Read date overrides','loadAvailability(month) -> Future<Map<String, bool>>', 'Queries date_availability for slot_date and is_available within the month. Converts the returned rows into a date-keyed map, for example {2026-11-07: false}. A date absent from the map is interpreted as available by the viewmodels.','services/calendar_service.dart','Future<Map<String, bool>> loadAvailability(')
+fn('Write one date override','saveAvailability(date, available) -> Future<void>', 'Requires an Auth user and looks up admin_id in the current source\'s admins table. Upserts one date_availability row containing slot_date, is_available and updated_by, using slot_date as the conflict key. select(...).single() expects one returned row instead of silently treating a zero-row write as success. It does not edit booking or time_slot rows.','services/calendar_service.dart','Future<void> saveAvailability(')
+
+page('Calendar viewmodel state and functions')
+p('State: selected is the chosen date; slots is the loaded month; availability is the override map; loading and error drive progress/error UI. service performs I/O. _version identifies the newest load and _disposed protects the object lifecycle.')
+fn('Create the month state','CalendarViewModel(service, initialDate)', 'Stores the injected data source and chooses initialDate or businessToday. The constructor itself does not start the query; CalendarScreen calls load after construction.','viewmodels/calendar_viewmodel.dart','CalendarViewModel(this.service')
+fn('Get bookings for one date','forDate(date) -> List<CalendarSlot>', 'Filters the already loaded month using dateKey equality. It does not make another network request. This supplies the selected-day preview.','viewmodels/calendar_viewmodel.dart','List<CalendarSlot> forDate(')
+fn('Choose the calendar status','status(date) -> String', 'Returns Not loaded while loading or after a load error. Then checks for an explicit false override and returns Unavailable. Otherwise any active reservation produces Reserved; remaining dates are Available. This ordering is why a closed booked date is grey rather than gold.','viewmodels/calendar_viewmodel.dart','String status(')
+fn('Load month data without accepting stale results','load() -> Future<void>', 'Increments _version, clears the old error and marks loading true. Future.wait requests slots and date availability together. Results, errors and the final loading flag are applied only if the object is alive and the request is still the newest. A slow October response therefore cannot overwrite a newer November selection.','viewmodels/calendar_viewmodel.dart','Future<void> load()')
+fn('Move the selection','moveMonth(delta), today() and selectDate(date)', 'moveMonth creates the first day of the next/previous month and reloads. today selects the current business date and reloads. selectDate only changes the selected date and notifies, because the month data is already loaded.','viewmodels/calendar_viewmodel.dart','Future<void> moveMonth(')
+fn('Notify and invalidate work on disposal','_changed() and dispose()', '_changed safely calls notifyListeners. dispose marks the object disposed, increments _version to invalidate in-flight work and releases ChangeNotifier resources.','viewmodels/calendar_viewmodel.dart','void _changed()')
+say('I load reservations and availability together, but date closure has the highest normal display priority. A request counter protects the screen when someone changes months quickly.')
+
+page('Calendar view and calendar grid')
+fn('Attach the calendar viewmodel to the screen','CalendarScreen constructor and build(context)', 'Accepts an optional data source and initial date. Creates a fresh CalendarViewModel in ChangeNotifierProvider and immediately starts load using the cascade operator. The child _CalendarBody listens to that state.','views/calendar.dart','Widget build(',after='class CalendarScreen')
+fn('Open availability and refresh on return','_CalendarBody._edit(context, vm)', 'Pushes DateManagerScreen with the same service and the selected date. Awaits the route closing, checks context.mounted, then reloads the calendar. Refreshing also after Cancel or an error is useful when remote data changed while the editor was open.','views/calendar.dart','Future<void> _edit(')
+fn('Build the interactive month screen','_CalendarBody.build(context)', 'Uses context.watch to obtain state. Builds Today, refresh, month arrows, weekday labels, the day grid, legend and selected-day preview. Loading shows a spinner; errors show Retry. Manage availability is disabled until loading succeeds. AdminBottomNav is selected at index 1 and refreshes data after another page returns.','views/calendar.dart','Widget build(',after='class _CalendarBody')
+h('How the grid calculation works')
+code('offset = first.weekday - 1\ndays = DateTime(first.year, first.month + 1, 0).day\ncells = ((offset + days + 6) ~/ 7) * 7\nn = index - offset + 1')
+p('Monday is column zero. offset creates leading empty cells. Day zero of the next month gives the final date of the chosen month. The cells formula rounds up to complete weeks. If n is outside 1..days, the builder returns an empty widget; otherwise it creates that date\'s button.')
+h('Day button and preview callbacks')
+p('The itemBuilder asks vm.status(date) for its colour: green Available, gold Reserved, grey Unavailable, dark grey Not loaded. Tapping calls selectDate. A white border indicates selection. Semantics and Tooltip expose status beyond colour. DayBookingsPreview receives only that date\'s slots; its Add invoice callback opens /add-invoice with the booking ID as a route argument.')
+fn('Render a legend entry','_Legend.build(context)', 'Draws a small colour square beside its label. The constructor receives the label and colour. It is a display widget only.','views/calendar.dart','Widget build(',after='class _Legend')
+
+page('Date availability viewmodel')
+p('State: date identifies the whole day; slots holds its fresh bookings; available is the switch value; loading/saving control actions. loadError and saveError are separate because a failed read and a failed write need different UI handling.')
+fn('Create the selected date state','DateAvailabilityViewModel(service, date)', 'Stores the supplied service and selected date. Defaults available to true while initial loading is pending. The screen starts load immediately; the user cannot save this default before the read succeeds.','viewmodels/date_availability_viewmodel.dart','DateAvailabilityViewModel(this.service')
+fn('Decide whether controls are usable','canSave getter', 'Returns true only when not loading, not saving and loadError is null. The same condition controls the availability switch and Save. This prevents an unknown remote state from being overwritten after a read failure.','viewmodels/date_availability_viewmodel.dart','bool get canSave')
+fn('Reload bookings and availability for the date','load() -> Future<void>', 'Does nothing during saving. Otherwise clears loadError, marks loading and concurrently requests loadDate(date) and the month\'s availability map. Uses only the selected date\'s override, defaulting to true when absent. On failure it keeps a load error; finally stops loading and notifies.','viewmodels/date_availability_viewmodel.dart','Future<void> load()')
+fn('Change the switch without writing yet','setAvailable(value)', 'Updates available and notifies only when canSave is true. Moving the switch changes local state; it is not itself a database write.','viewmodels/date_availability_viewmodel.dart','void setAvailable(')
+fn('Save the date setting','save() -> Future<bool>', 'Returns false if saving is not allowed. Marks saving, clears saveError and calls service.saveAvailability(date, available). Returns true after success, or false with saveError after failure. finally clears saving. Existing bookings and their times are not sent to an update function.','viewmodels/date_availability_viewmodel.dart','Future<bool> save()')
+fn('Handle notifications and cleanup','_changed() and dispose()', '_changed notifies only while alive. dispose marks the object disposed and releases notifier resources, preventing late asynchronous completions from updating a removed screen.','viewmodels/date_availability_viewmodel.dart','void _changed()')
+say('The switch changes a local value. Save writes one date override. Cancel closes the form without calling the save service, and neither operation deletes the booked sessions.')
+
+page('Date manager screen and its controls')
+fn('Create the date editor','DateManagerScreen constructor and build(context)', 'Requires the data source and date. Creates DateAvailabilityViewModel, starts its load, and provides it to _DateManagerBody. It deliberately reloads rather than trusting the calendar\'s old snapshot.','views/date_manager.dart','Widget build(',after='class DateManagerScreen')
+fn('Render the selected date and booked sessions','_DateManagerBody.build(context)', 'Watches the date viewmodel and builds the date title, Booked sessions preview, loading/error state, whole-day switch and action buttons. Both this screen and Calendar use DayBookingsPreview, avoiding two competing display implementations.','views/date_manager.dart','Widget build(',after='class _DateManagerBody')
+h('Availability switch')
+p('SwitchListTile receives vm.available as its value. When canSave is true its onChanged callback is vm.setAvailable; otherwise it is null, disabling the switch. The subtitle shows Available or Unavailable. There are no start/end-time fields because this editor manages a date, not an individual time range.')
+h('Save callback')
+code('if (await vm.save() && context.mounted) {\n  Navigator.of(context).pop(true);\n}')
+p('The callback waits for the viewmodel\'s result. Only a successful save and a still-mounted screen cause a pop. A failure keeps the editor open with the selected value and saveError, allowing a retry. The calendar reloads when this route closes.')
+h('Cancel callback')
+p('Cancel pops false and calls no write method. While saving, Cancel is disabled. PopScope also sets canPop to false while the write is in progress, reducing the chance that the user leaves before the write outcome is known.')
+h('A concrete example')
+p('Suppose 7 November has bookings at 09:00 and 14:00. The editor displays both sessions. Setting Unavailable and saving upserts a false override for 2026-11-07. The calendar becomes grey while the booking rows remain. Reopening the date sets true; the date becomes gold again if an active booking remains. This example illustrates the code path; it is not seeded data in the current project.')
+say('The same preview appears in both places. I have one date setting above the existing booking structure, so closing the date does not erase the bookings.')
+
+page('Shared display helpers and widgets')
+fn('Share the visual constants','adminGold, unavailableDayColor and _months', 'adminGold is #FFB900 and unavailableDayColor is #6B6B6B. _months is an ordered list of month names used by the formatting helpers. The green available colour is specified in the calendar view. These are presentation values, not database statuses.','widgets/admin_widgets.dart','const adminGold')
+fn('Format dates and errors','monthLabel(d), dateLabel(d) and adminError(e)', 'monthLabel produces a month and year. dateLabel prefixes the day. adminError uses a FormatException\'s message or removes a leading Exception: from a generic exception string. It makes messages readable, but is not a translation layer for every backend error.','widgets/admin_widgets.dart','String monthLabel(')
+fn('Constrain wide screen content','AdminContent constructor and build(context)', 'Accepts one child, aligns it at the top centre and limits its width to 900 logical pixels. The feature screens can fill a phone while remaining readable on a wider display.','widgets/admin_widgets.dart','Widget build(',after='class AdminContent')
+fn('Display a read failure and retry action','AdminErrorNotice constructor and build(context)', 'Receives the error and a retry callback. Shows the formatted error in red and invokes that callback from Retry. It does not decide what data to fetch; the calling viewmodel supplies that behavior.','widgets/admin_widgets.dart','Widget build(',after='class AdminErrorNotice')
+fn('Display booked sessions consistently','DayBookingsPreview constructor and build(context)', 'Receives slots and an optional onInvoice callback. Keeps slots whose bookings list is not empty, sorts by start string then ID, and renders each time range and every booking in that range. Empty input produces No bookings for this date. The preview includes cancelled or inactive rows if returned; active status determines the date\'s reserved colour, not whether a row is displayed.','widgets/admin_widgets.dart','Widget build(',after='class DayBookingsPreview')
+h('What the preview shows')
+p('Each card shows the time range, client, event, optional location, booking status and selection status. Times use their first five characters to display HH:mm. When onInvoice is provided, the Add invoice button passes the booking ID to the caller. The date editor omits that callback, so it displays the same booking information without upload actions.')
+say('These shared widgets remove repeated layout code. The preview sorts and displays bookings; the viewmodels decide which date is selected and whether it is available.')
+
+page('Invoice models validation and data contracts')
+fn('Represent a saved invoice','AddInvoiceModel constructor', 'Stores invoiceId, adminId, bookingId, reference, filePath and optional createdAt as final fields. It represents the database metadata; it does not contain the PDF bytes.','models/add_invoice_model.dart','const AddInvoiceModel({')
+fn('Convert between database rows and invoice objects','AddInvoiceModel.fromMap(map) and toMap()', 'fromMap maps snake_case database keys to Dart fields, converts identifier/reference/path values to strings, and tries to parse created_at when present. toMap creates a map using the database key names and formats the optional timestamp. The upload service builds its insert explicitly rather than calling toMap, leaving created_at to the database default.','models/add_invoice_model.dart','factory AddInvoiceModel.fromMap(')
+fn('Represent a booking dropdown option','InvoiceBooking(id, label)', 'Stores the booking ID separately from the human-readable label. The dropdown displays the label but submits the ID, so two similar client names do not become the database key.','models/add_invoice_model.dart','class InvoiceBooking')
+fn('Validate the selected PDF','validateInvoicePdf(name, bytes) -> String?', 'Returns an error unless the filename ends with .pdf, the size is at most 10 * 1024 * 1024 bytes, and the first five bytes form %PDF-. Extension checking is case-insensitive. Returns null when these checks pass. This is a size/header check, not a complete PDF parser or malware scan.','services/add_invoice_service.dart','String? validateInvoicePdf(')
+fn('Define the invoice service contract','InvoiceDataSource', 'Requires loadBookings, uploadInvoice and signedInvoiceUrl. uploadInvoice receives the selected booking, reference, file name, PDF bytes, stable invoice ID and whether an earlier outcome is uncertain. Implementations return a saved AddInvoiceModel rather than a widget.','services/add_invoice_service.dart','abstract class InvoiceDataSource')
+h('Additional form rules')
+p('A booking must be selected. The trimmed reference must contain 1 to 120 characters. These checks run in the viewmodel and again at the service boundary. The picker filters by extension and checks reported file length before reading bytes, but the service still validates the actual content it receives.')
+say('The database stores invoice information and a file path. The PDF itself goes into Storage. The ID is the stable link used to recover an interrupted attempt.')
+
+page('Invoice service lookup functions')
+fn('Use an existing Supabase connection','AddInvoiceService({supabase})', 'Stores an injected client or Supabase.instance.client. The bucket constant is invoices. No new Storage bucket or database table is created by the Dart service.','services/add_invoice_service.dart','AddInvoiceService({')
+fn('Require an administrator before uploading','requireAdminId() -> Future<String>', 'Rejects a missing Auth user. Queries admins for the matching user_id and rejects a missing administrator row. Returns the admin_id used in both the invoice row and Storage path. This lookup must match the live schema and its access policies.','services/add_invoice_service.dart','Future<String> requireAdminId()')
+fn('Load all booking choices','loadBookings() -> Future<List<InvoiceBooking>>', 'Queries booking with its client/users relation, including the event and booking status. Orders newest created_at first, with booking_id as a stable tie-breaker. Pages in batches of 200. Builds a display label from client, event, status and a shortened ID while retaining the full ID in InvoiceBooking. It does not filter out cancelled bookings.','services/add_invoice_service.dart','Future<List<InvoiceBooking>> loadBookings()')
+fn('Find a prior invoice by its attempt ID','_find(id) -> Future<AddInvoiceModel?>', 'Queries invoice by invoice_id with maybeSingle. Returns null if no visible row exists, otherwise converts it using AddInvoiceModel.fromMap. A null result after a network failure does not prove that an earlier insert can no longer commit.','services/add_invoice_service.dart','Future<AddInvoiceModel?> _find(')
+fn('Check whether a recovered row is the same invoice','_matching(invoice, admin, booking, reference, path)', 'Compares the recovered row\'s admin ID, booking ID, trimmed reference and file path against the attempt. Throws StateError if any differ; otherwise returns the row. It checks metadata identity, not a hash of PDF content.','services/add_invoice_service.dart','AddInvoiceModel _matching(')
+fn('Create a temporary way to open a private PDF','signedInvoiceUrl(path) -> Future<Uri>', 'Requests createSignedUrl(path, 300) from the invoices bucket and parses the returned string as a URI. The link lasts five minutes. It is not the permanent value stored in invoice.file_path, and possession of the valid link can allow temporary access.','services/add_invoice_service.dart','Future<Uri> signedInvoiceUrl(')
+
+page('Invoice upload algorithm and failure recovery')
+fn('Upload the PDF and save its metadata','uploadInvoice(...) -> Future<AddInvoiceModel>', 'This service method coordinates Storage and Postgres. They are separate operations, so the error-handling code is responsible for recovering a saved row or cautiously cleaning up a rejected upload. There is no single transaction covering both systems.','services/add_invoice_service.dart','Future<AddInvoiceModel> uploadInvoice(',after='class AddInvoiceService')
+h('Normal success path')
+p('1. Validate the actual bytes, trimmed reference and booking ID. Require the administrator ID.\n2. Build admin_id/booking_id/invoice_id.pdf. The user\'s original filename is not used as the storage object name.\n3. Call _find(invoiceId). If it already exists, return _matching instead of uploading again.\n4. Upload binary data with contentType application/pdf and upsert false.\n5. Insert invoice_id, admin_id, booking_id, reference and file_path into invoice. Select the created row and return its model.')
+h('A duplicate object during a retry')
+p('A prior upload might have succeeded even though the client did not receive its response. Storage can then report that the object already exists. The code permits reuse of that path only if uncertainBefore is true and the error matches a duplicate condition. It still does not overwrite the object. The viewmodel locks the inputs so the same attempt keeps the same PDF and metadata.')
+h('Recover before deciding to clean up')
+p('On an exception, the service first looks for a committed invoice row. If it finds a matching row, it returns success. If no row is visible, cleanup is allowed only for a PostgrestException with a five-character SQL error code beginning 22, 23 or 42, when this attempt definitely uploaded the object and there was no earlier uncertainty. These classes cover input, constraint and syntax/access rejections.')
+p('Transport failures, gateway timeouts, unknown error codes and uncertain earlier attempts retain the PDF. A missing row is not proof that a request behind a gateway timeout has stopped. If the recovery query or cleanup also fails, that secondary error is suppressed and the original error is rethrown.')
+say('I never delete the PDF just because the connection failed. I first check whether the invoice was saved. Only a definite first-attempt database rejection allows cleanup, because an uncertain insert might still finish later.')
+
+page('Invoice viewmodel form state and draft preparation')
+p('AddInvoiceViewModel owns the form values and the pending upload. bookingId identifies the selected booking; reference and fileName describe the choice; _bytes stores a copy of the PDF in memory. bookings holds dropdown options and invoice holds the saved result. errorMessage is for validation/upload errors; loadError is for booking-list errors.')
+p('isLoading means an upload is in progress. loadingBookings means choices are loading. locked freezes the attempt\'s inputs. _invoiceId is the stable UUID; _uncertain records a prior failed outcome; _disposed prevents notifications after cleanup.')
+fn('Create the form state','AddInvoiceViewModel({service, initialBookingId})', 'Uses an injected InvoiceDataSource or AddInvoiceService and stores the optional booking selection. The constructor does not automatically upload or choose a file.','viewmodels/add_invoice_view_model.dart','AddInvoiceViewModel({')
+fn('Populate the booking dropdown','loadBookings() -> Future<void>', 'Sets loadingBookings, clears loadError and calls service.loadBookings. Stores the returned options, or a load error. finally stops the loading flag and notifies. This is separate from isLoading so the UI can distinguish loading choices from uploading a PDF.','viewmodels/add_invoice_view_model.dart','Future<void> loadBookings()')
+fn('Start a clean form or resume a pending attempt','prepareForBooking(initialBookingId)', 'If locked is true and invoice is still null, returns without clearing anything. That preserves an unresolved attempt across closing/reopening the form. Otherwise resets the selected booking to the supplied argument and clears the reference, file, bytes, invoice ID, saved result, lock, uncertainty and form error. It prepares data without itself notifying; the opening screen subsequently loads booking choices.','viewmodels/add_invoice_view_model.dart','void prepareForBooking(')
+fn('Update the selected booking and reference','selectBooking(id) and setReference(value)', 'Both refuse changes while locked. selectBooking updates bookingId and notifies. setReference stores text without notifying on every keystroke because the text field already displays the typed value. Trimming happens when submitting.','viewmodels/add_invoice_view_model.dart','void selectBooking(')
+fn('Store a valid PDF selection','selectPdf(name, bytes)', 'Refuses changes after locking. Runs validateInvoicePdf; invalid input clears any old filename/bytes and exposes an error. Valid input saves the name and a defensive Uint8List copy, clears the error and notifies. Clearing an old selection avoids accidentally uploading a previous file after the user chooses an invalid replacement.','viewmodels/add_invoice_view_model.dart','void selectPdf(')
+
+page('Invoice viewmodel submit and retry functions')
+fn('Validate and execute one stable upload attempt','submit() -> Future<bool>', 'Returns false if already uploading or an invoice is already saved. Requires a booking, a trimmed 1-to-120-character reference and selected PDF bytes. On a valid attempt it sets isLoading and locked, clears the error and creates _invoiceId only if absent. Calls the service with the immutable details and _uncertain flag. Success stores invoice and returns true; a caught error sets _uncertain and errorMessage and returns false. finally clears isLoading and notifies while alive.','viewmodels/add_invoice_view_model.dart','Future<bool> submit()')
+h('Why the UUID is reused')
+code('_invoiceId ??= const Uuid().v4();')
+p('The null-aware assignment creates an ID once for this attempt. A later retry uses that same ID, allowing the service to find an invoice that was saved despite a lost response. It is not a permanent ban on uploading more than one invoice for a booking: a later resolved/new form gets a new ID.')
+h('Why inputs are locked')
+p('If a failed attempt was actually saved, a retry must not silently change its booking, reference or file. locked keeps those inputs consistent. isLoading prevents two simultaneous submissions. These flags solve different problems: locked can remain true after uploading has stopped.')
+fn('Preserve the original upload entry point','uploadInvoice(bookingId, reference, fileName, fileBytes)', 'Compatibility wrapper for callers of the earlier viewmodel API. Rejects a locked or busy form, delegates the values to the selection methods, then calls submit. The current upload view calls submit directly.','viewmodels/add_invoice_view_model.dart','Future<bool> uploadInvoice(')
+fn('Clear a displayed error','clearError()', 'Clears errorMessage and notifies. It does not discard the pending ID, selected PDF or uncertainty flag.','viewmodels/add_invoice_view_model.dart','void clearError()')
+fn('Notify safely and clean up','_changed() and dispose()', '_changed calls notifyListeners only while alive. dispose marks the notifier disposed and releases its listeners. Recovery state exists only as long as the containing authorized app subtree remains alive; it is not restored after an app restart or the end of that authorized subtree.','viewmodels/add_invoice_view_model.dart','void _changed()')
+say('I block repeated clicks while uploading, then keep the same ID and inputs for a retry. If the form is reopened during the same authorized session, it resumes that unresolved attempt rather than starting another invoice.')
+
+page('Invoice upload screen lifecycle and file actions')
+fn('Create a form with optional injected dependencies','AddInvoiceScreen constructor and createState()', 'Accepts an optional service, initialBookingId and shared viewModel. createState creates _AddInvoiceScreenState. The route manager normally supplies the shared draft; a standalone host or test can supply a service instead.','views/add_invoice.dart','class AddInvoiceScreen')
+fn('Prepare state and defer loading until after the first frame','_AddInvoiceScreenState.initState()', 'Uses the shared viewmodel if supplied, otherwise creates its own. Calls prepareForBooking, then schedules loadBookings in addPostFrameCallback with a mounted check. Deferring the notification avoids updating an ancestor Provider during widget construction.','views/add_invoice.dart','void initState()')
+fn('Provide and dispose the correct viewmodel instance','_AddInvoiceScreenState.build(context) and dispose()', 'build exposes vm through ChangeNotifierProvider.value. dispose disposes vm only if this screen created it. A shared draft must remain owned by the authorized parent provider so it survives route changes and is cleaned up by that owner.','views/add_invoice.dart','void dispose()',after='class _AddInvoiceScreenState')
+fn('Choose and read a PDF','_AddInvoiceBody._pick(context, vm)', 'Opens FilePicker with a pdf extension filter. Cancellation exits. It checks the reported file length when available, reads the bytes and passes them to vm.selectPdf for content validation. Mounted checks after asynchronous work avoid updating a closed screen. File-picker/read errors appear in a SnackBar.','views/add_invoice.dart','Future<void> _pick(')
+fn('Open a saved invoice','_AddInvoiceBody._open(context, vm)', 'Asks the service for a signed URI for invoice.filePath, then launches it with an external application. If launching fails, or URL creation fails, displays a SnackBar. It does not generate a PDF or make the bucket public.','views/add_invoice.dart','Future<void> _open(')
+say('The view handles the platform file dialog and opening a URL. The viewmodel keeps form state, and the service performs the upload and database work.')
+
+page('Invoice upload screen controls and outcomes')
+fn('Build the form from state','_AddInvoiceBody.build(context)', 'Watches AddInvoiceViewModel. Confirms whether bookingId appears in the loaded options before using it as the dropdown\'s initial value. Builds loading, error, empty-booking, editable, pending-retry and success states.','views/add_invoice.dart','Widget build(',after='class _AddInvoiceBody')
+table(['Control or state','What the code does'],[
+('Booking dropdown','Shows labels but selects IDs. onChanged is selectBooking unless locked.'),
+('Reference field','Starts from vm.reference, enforces a 120-character UI limit and forwards text to setReference.'),
+('Choose PDF','Calls _pick unless the attempt is locked. The selected filename is displayed.'),
+('Upload invoice','Calls submit only when choices loaded successfully and the list is not empty.'),
+('Retry upload','Uses the same submit method and preserved attempt data after a failure.'),
+('Invoice saved','Shows confirmation, Open PDF and Done after invoice becomes non-null.'),
+('Cancel or Done','Pops false for Cancel or true for Done. Neither deletes an invoice.')],[1.5,5.5])
+h('Prevent leaving during the request')
+p('PopScope sets canPop to !vm.isLoading. Cancel is also disabled during the upload. After an uncertain failure finishes, the user can leave; the shared authorized draft provider preserves the attempt for reopening. If a standalone caller supplies no shared viewmodel, its locally owned state is disposed when that standalone screen closes.')
+h('Separate errors by their origin')
+p('A booking-list error shows AdminErrorNotice with loadBookings as Retry. A validation/upload error uses errorMessage. A file-dialog or open-PDF error uses a SnackBar. These are separate paths because retrying the booking list is not the same operation as retrying an invoice insert.')
+h('A useful limitation to explain')
+p('The form does not edit or create the PDF, calculate invoice totals, process payments, or verify bank payment evidence. It uploads a document that already exists. The list/details pages are separate team modules and should not be claimed as part of this implementation simply because More links to them.')
+
+page('Bottom navigation and the More screen')
+fn('Declare the main destinations','AdminBottomNav constructor and routes', 'Receives currentIndex and an optional onReturn callback. The route order is Bookings index 0, Calendar index 1, Profile index 2 and More index 3. The selected index controls the active item styling.','widgets/admin_bottom_nav.dart','class AdminBottomNav')
+fn('Build the bar and handle destination taps','AdminBottomNav.build(context) and onTap(index)', 'Builds a fixed gold BottomNavigationBar with labels. Tapping the current destination does nothing. Choosing Calendar pops back to the first route, which is the calendar in this admin host. Other destinations are pushed by name and awaited. If this navigation widget is still mounted after returning, onReturn is called; Calendar supplies vm.load.','widgets/admin_bottom_nav.dart','Widget build(')
+fn('Show secondary actions and sign out','AdminMoreScreen.build(context)', 'Builds a list of route/label/icon records. Each tile uses pushNamed. Current routes include Upload invoice, Invoices, Portfolio, Portfolio gallery, Clients, Services and Settings. A Consumer of AdminAuthViewModel displays any auth error and calls signOut from the button, disabled while busy. More selects bottom-bar index 3.','views/admin_more.dart','Widget build(')
+h('The current team integration boundary')
+p('The restored navigation widget was introduced for Brandon\'s screens. Other team screens can have their own navigation implementations; the route links do not rewrite those implementations. The current More menu and route manager also include later team additions such as Clients and Portfolio gallery. Explain them as connected destinations, not as new calendar/invoice logic.')
+h('How a preselected invoice route works')
+code("Navigator.of(context).pushNamed('/add-invoice', arguments: bookingId);")
+p('The booking card passes its real ID. RouteManager checks for a String argument, supplies it as initialBookingId, and obtains the shared upload draft from Provider. If no unresolved attempt exists, prepareForBooking starts the form with that selection. If an attempt is unresolved, preserving it takes priority over switching to another booking.')
+say('The bottom bar handles the main pages. More groups the secondary pages. The calendar reloads when another main page returns, so it does not keep displaying an old booking snapshot.')
+
+page('Supabase data relationships and security boundaries')
+table(['Data source','How this module uses it'],[
+('Supabase Auth','Signs in, signs out and provides the current user UUID.'),
+('admins','Current source looks up administrator membership and admin_id.'),
+('time_slot','Supplies dates and start/end ranges.'),
+('booking_slot','Connects slots to bookings and supplies selection_status.'),
+('booking client users','Supply event, location, booking status and client display names.'),
+('date_availability','Stores one whole-day override with updated_by attribution.'),
+('invoice','Stores invoice ID, booking/admin links, reference and file path.'),
+('invoices bucket','Stores the actual PDF object under its canonical path.')],[1.65,5.35])
+h('Read versus write responsibilities')
+p('The calendar service reads slot/booking data. The date manager writes only date_availability. The invoice service writes a Storage object and an invoice row. Admin Auth service reads membership and calls Auth. These are distinct operations; a UI status colour does not itself reserve a slot or change a booking status.')
+h('What provides real access control')
+p('The admin gate controls which screens are visible. The service checks membership before sensitive actions. Server-side Row Level Security and Storage policies must still enforce permissions for direct API requests. A public key alone does not prove authorization. Client-side checks and obscured passwords are not encryption or database access policies.')
+h('Availability enforcement on the server')
+p('The Dart code never inserts a new booking reservation. Preventing a different booking module or direct API caller from reserving a closed day depends on the deployed server guards and policies. Earlier project work added those guards, but their live definitions were not re-inspected for this documentation task. The current checkout contains no local SQL migration scripts to verify that deployment from source.')
+say('Database rows describe the booking and invoice relationships. Storage holds the PDF. UI gates make the workflow usable, while database and Storage policies must remain the final access-control boundary.')
+
+page('Suggested presentation and live demonstration')
+p('Use this as a roughly eight-minute sequence. Adjust the timings to your actual allocation. Prepare a known admin account, a harmless PDF and a date with two sample sessions before presenting.')
+table(['Time','Show and say'],[
+('0 to 1 minute','Introduce your three assigned features and explain the four code layers from chapter 2.'),
+('1 to 2 minutes','Sign in. Explain main, AdminAuthService, AdminAuthViewModel and the gate. Mention that an existing session may skip the sign-in form.'),
+('2 to 3 minutes','Show Calendar, change months and select a booked date. Explain load, _slots, fromMap and status.'),
+('3 to 4 minutes','Open Manage availability. Show both sessions. Change the switch and save. Show the grey date and preserved bookings.'),
+('4 to 5 minutes','Reopen the date and save. Explain that a reserved date returns to gold and only the date override changed.'),
+('5 to 7 minutes','Open Add invoice from a booking, enter a reference, choose the PDF, upload and open it. Explain bytes, metadata, stable ID and temporary signed URL.'),
+('7 to 8 minutes','Show More and sign out. Explain the protected navigator and summarize retry/error safeguards.')],[1.25,5.75])
+h('Trace one action in the code editor')
+code('Save availability\n  views/date_manager.dart  Save callback\n  -> DateAvailabilityViewModel.save()\n  -> CalendarService.saveAvailability()\n  -> date_availability upsert\n  -> Navigator.pop(true)\n  -> _CalendarBody._edit() reload\n  -> CalendarViewModel.status()\n  -> grey or reserved colour')
+h('If the network fails during the demo')
+p('Use the visible error and Retry behavior as the explanation. For an invoice, do not rapidly start new forms or assume that failure means nothing was saved. Explain the stable attempt ID, keep the session open and retry the unresolved attempt. Have screenshots or a short recording of a successful demo available as a backup.')
+
+page('Likely questions and concise answers')
+h('Why did you use MVVM and Provider')
+p('The view displays state, the viewmodel coordinates actions, models describe the data, and services access Supabase. Provider connects the state to the widgets. I can change queries or test state without putting database code into the calendar layout.')
+h('Why is a closed booked date grey')
+p('CalendarViewModel.status checks the whole-day override before checking reservations. Closure controls whether more sessions may be accepted; existing bookings remain visible for the administrator.')
+h('Why do you check both booking and selection status')
+p('The booking is the overall request. selection_status belongs to its link with a particular time slot. Either side can release the reservation, so the helper treats an inactive status on either side as inactive.')
+h('How do you avoid stale month data')
+p('Each load increments a request version. A response may update state only if its version is still current and the viewmodel is alive. This handles requests finishing in a different order from the user\'s clicks.')
+h('Why save a path instead of a permanent public URL')
+p('The file is kept in a private bucket. I save its stable path and request a temporary signed URL only when opening it. That separates permanent invoice metadata from temporary access.')
+h('Does retry guarantee no duplicate invoices ever')
+p('No. It reuses one ID for one unresolved in-memory attempt and checks for a saved row. A separate completed/new attempt can create another invoice. Recovery does not survive the end of the authorized subtree or a full app restart.')
+h('Why not delete every failed upload')
+p('A timeout can occur while the database insert is still running. Deleting the PDF then could leave a late committed invoice pointing at a missing file. Cleanup is restricted to definite first-attempt SQL rejections.')
+h('What did you deliberately leave to other modules')
+p('Booking creation and approval, client/profile management, the invoice list/details workflow, portfolio/content management and service management belong to separate team modules. My screens connect to them through routes and shared data relationships.')
+
+page('Checks to complete before presenting')
+p('These are observations from the current source on 31 October 2026, not changes made as part of writing this guide. Rehearse the actual build and live data path before your presentation.')
+h('Confirm the administrator table name')
+p('AdminAuthService.currentAdminId, CalendarService.saveAvailability and AddInvoiceService.requireAdminId currently query admins. Earlier ERD/deployment work used admin. Confirm that the current live project has the table or view expected by this checkout. A mismatch can prevent sign-in authorization, availability saves and uploads even if Auth sign-in succeeds.')
+h('Confirm the launch configuration and missing example')
+p('config/supabase.local.json is present but was not opened or copied into this guide. config/supabase.example.json is currently deleted, although setup-screen text still refers to it. Launch with the Dart-define flag and check the local settings without showing the key during your demo.')
+h('Check displayed text for encoding artifacts')
+p('Some source strings, including the uploading label, reference-length message and booking-label separators, contain garbled characters. Check the running screens for readability. This guide uses clean explanatory prose; it does not silently repair those application strings.')
+h('Check the target platform')
+p('The current main Android manifest does not show an Internet permission, the iOS project targets 13.0, and the macOS release entitlement file only shows app sandboxing. Earlier restoration settings differed. Confirm the installed PDF picker\'s target requirements and the platform\'s network/selected-file permissions if demonstrating a native build. The code alone is not evidence of a successful native build.')
+h('Describe current tests accurately')
+p('Only test/widget_test.dart and test/admin_content_models_test.dart are present in this checkout. They cover a service-details widget and service/client/content mapping. The earlier restoration\'s 18 admin regression tests are not present here. Do not claim they currently run from this checkout. This documentation task did not rerun the app, authenticate an account, inspect live policies or perform a live upload.')
+code('flutter analyze\nflutter test\nflutter run --dart-define-from-file=config/supabase.local.json')
+
+page('Dart Flutter and database terms to explain')
+table(['Term','Meaning in this implementation'],[
+('Future and async await','A result that will arrive later. await pauses this asynchronous function, not the whole UI thread.'),
+('Getter','A property-style function such as authorized, active, reserved or canSave.'),
+('ChangeNotifier','An object that can announce state changes to listeners.'),
+('notifyListeners','The signal that causes listening Provider consumers to rebuild.'),
+('mounted and _disposed','Checks that an owning widget or viewmodel is still alive before applying delayed results.'),
+('Future.wait','Starts independent asynchronous work together and waits for all results.'),
+('Factory fromMap','A constructor that converts a database map into a typed model.'),
+('Upsert','Insert a row, or update the row matching the declared conflict key.'),
+('UUID','A unique identifier; one is retained for each unresolved upload attempt.'),
+('RLS','Row Level Security: database policies that decide which rows a request may access.'),
+('Signed URL','A temporary access link to a private stored object.'),
+('Callback','A function passed to a widget, such as onChanged, onPressed or onReturn.'),
+('Underscore prefix','A Dart library-private name, used for helpers such as _slots and _matching.'),
+('Null aware operators','?? provides a default; ??= assigns only when null; ?. accesses only when non-null.'),
+('Cascade operator','..load() calls load on the just-created object while keeping that object as the expression result.')],[1.6,5.4])
+p('Constructor parameters such as required service or optional initialDate describe how an object is created. build describes widgets. initState runs when a State is first created. dispose releases ownership resources. Those lifecycle functions are different from database transactions.')
+
+page('Source file map and ownership boundaries')
+table(['Source file or group','What to open when asked'],[
+('lib/main.dart and lib/app.dart','Startup, shared providers, theme and the public entry screen.'),
+('lib/services/admin_auth_service.dart','Auth SDK calls and administrator membership lookup.'),
+('lib/viewmodels/admin_auth_viewmodel.dart','Session state, busy state and versioned membership checking.'),
+('lib/views/admin_entry.dart and admin_sign_in.dart','Protected subtree, shared upload draft and login form.'),
+('lib/routes/route_manager.dart','Named routes, route arguments and links to team screens.'),
+('lib/models/calendar_model.dart','Date helpers, status rules and nested booking mapping.'),
+('lib/services/calendar_service.dart','Paged calendar queries and one-row date override writes.'),
+('lib/viewmodels/calendar_viewmodel.dart','Selected date, month state, status priority and stale-response guard.'),
+('lib/views/calendar.dart','Month grid, selected-day preview and edit/upload callbacks.'),
+('lib/viewmodels/date_availability_viewmodel.dart','Read state, local switch value and guarded saving.'),
+('lib/views/date_manager.dart','Fresh booking preview and whole-day Save/Cancel UI.'),
+('lib/models/add_invoice_model.dart','Invoice metadata conversion and booking dropdown options.'),
+('lib/services/add_invoice_service.dart','Validation, canonical file paths, recovery and signed URLs.'),
+('lib/viewmodels/add_invoice_view_model.dart','Form values, stable attempt ID, lock and resumable draft.'),
+('lib/views/add_invoice.dart','Lifecycle ownership, file picker, upload states and PDF opening.'),
+('lib/widgets/admin_widgets.dart','Date/error labels, width constraint and shared booking cards.'),
+('lib/widgets/admin_bottom_nav.dart and lib/views/admin_more.dart','Main navigation, secondary links and sign-out.'),
+('lib/views/supabase_setup.dart','Instructions for missing or invalid startup configuration.')],[3.15,3.85])
+p('This file map identifies the restored features and their supporting wiring. Existing team modules are explained only where they connect to these features. The source reference lines throughout the guide describe the inspected working tree, including its local sign-in edit; future changes can move them.')
+
+OUT.parent.mkdir(parents=True,exist_ok=True)
+doc.core_properties.title='TM Visuals admin features code guide'
+doc.core_properties.subject='Presentation preparation and function reference'
+doc.core_properties.author='Brandon'
+doc.core_properties.keywords='TM Visuals, calendar, date availability, invoice upload, MVVM, Provider'
+doc.save(OUT)
+summary={'chapters':len(pages),'document':str(OUT),'entries':entries,'source_sha256':{k:hashlib.sha256(v.encode()).hexdigest() for k,v in SOURCES.items() if k in {e['file'] for e in entries}}}
+(Path(__file__).parent/'source_inventory.json').write_text(json.dumps(summary,indent=2),encoding='utf8')
+text='\n'.join(par.text for par in doc.paragraphs)+'\n'+'\n'.join(cell.text for t in doc.tables for row in t.rows for cell in row.cells)
+(Path(__file__).parent/'guide_text.txt').write_text(text,encoding='utf8')
+print(json.dumps({'output':str(OUT),'chapters':len(pages),'function_entries':len(entries),'words':len(text.split()),'bytes':OUT.stat().st_size}))

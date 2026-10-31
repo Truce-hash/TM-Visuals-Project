@@ -1,0 +1,521 @@
+{
+  "chapters": 27,
+  "document": "C:\\Users\\Brandon\\Documents\\GitHub\\TM-Visuals-Project\\TM-Visuals-Flutter-App\\output\\docx\\TM_Visuals_Admin_Features_Code_Guide.docx",
+  "entries": [
+    {
+      "file": "main.dart",
+      "symbol": "main() -> Future<void>",
+      "line": 6,
+      "chapter": 3
+    },
+    {
+      "file": "app.dart",
+      "symbol": "MyApp constructor and build(context) -> Widget",
+      "line": 22,
+      "chapter": 3
+    },
+    {
+      "file": "views/supabase_setup.dart",
+      "symbol": "SupabaseSetupScreen.build(context) -> Widget",
+      "line": 8,
+      "chapter": 3
+    },
+    {
+      "file": "services/admin_auth_service.dart",
+      "symbol": "AdminAuthService(client)",
+      "line": 4,
+      "chapter": 4
+    },
+    {
+      "file": "services/admin_auth_service.dart",
+      "symbol": "changes and userId getters",
+      "line": 6,
+      "chapter": 4
+    },
+    {
+      "file": "services/admin_auth_service.dart",
+      "symbol": "currentAdminId() -> Future<String?>",
+      "line": 8,
+      "chapter": 4
+    },
+    {
+      "file": "services/admin_auth_service.dart",
+      "symbol": "signIn(email, password) and signOut()",
+      "line": 19,
+      "chapter": 4
+    },
+    {
+      "file": "views/admin_sign_in.dart",
+      "symbol": "AdminSignInScreen.createState and state build(context)",
+      "line": 23,
+      "chapter": 4
+    },
+    {
+      "file": "views/admin_sign_in.dart",
+      "symbol": "_AdminSignInScreenState.dispose()",
+      "line": 16,
+      "chapter": 4
+    },
+    {
+      "file": "viewmodels/admin_auth_viewmodel.dart",
+      "symbol": "AdminAuthViewModel(service)",
+      "line": 6,
+      "chapter": 5
+    },
+    {
+      "file": "viewmodels/admin_auth_viewmodel.dart",
+      "symbol": "authorized getter",
+      "line": 25,
+      "chapter": 5
+    },
+    {
+      "file": "viewmodels/admin_auth_viewmodel.dart",
+      "symbol": "check() -> Future<void>",
+      "line": 30,
+      "chapter": 5
+    },
+    {
+      "file": "viewmodels/admin_auth_viewmodel.dart",
+      "symbol": "signIn(email, password) and signOut()",
+      "line": 56,
+      "chapter": 5
+    },
+    {
+      "file": "viewmodels/admin_auth_viewmodel.dart",
+      "symbol": "_changed() and dispose()",
+      "line": 26,
+      "chapter": 5
+    },
+    {
+      "file": "views/admin_entry.dart",
+      "symbol": "AdminEntryScreen.build(context)",
+      "line": 17,
+      "chapter": 6
+    },
+    {
+      "file": "views/admin_entry.dart",
+      "symbol": "_AdminGate.build(context)",
+      "line": 27,
+      "chapter": 6
+    },
+    {
+      "file": "routes/route_manager.dart",
+      "symbol": "RouteManager.getRoute(settings, client) -> Route",
+      "line": 32,
+      "chapter": 6
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "dateKey(date) -> String",
+      "line": 1,
+      "chapter": 7
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "businessToday() -> DateTime",
+      "line": 3,
+      "chapter": 7
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "reservationActive(selection, booking) -> bool",
+      "line": 8,
+      "chapter": 7
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "CalendarBooking constructor and active getter",
+      "line": 19,
+      "chapter": 7
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "CalendarSlot constructor and reserved getter",
+      "line": 32,
+      "chapter": 7
+    },
+    {
+      "file": "models/calendar_model.dart",
+      "symbol": "CalendarSlot.fromMap(row) -> CalendarSlot",
+      "line": 44,
+      "chapter": 7
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "CalendarDataSource",
+      "line": 4,
+      "chapter": 8
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "CalendarService({supabase})",
+      "line": 12,
+      "chapter": 8
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "loadMonth(month) and loadDate(date)",
+      "line": 5,
+      "chapter": 8
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "_slots(from, until) -> Future<List<CalendarSlot>>",
+      "line": 25,
+      "chapter": 8
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "loadAvailability(month) -> Future<Map<String, bool>>",
+      "line": 7,
+      "chapter": 8
+    },
+    {
+      "file": "services/calendar_service.dart",
+      "symbol": "saveAvailability(date, available) -> Future<void>",
+      "line": 8,
+      "chapter": 8
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "CalendarViewModel(service, initialDate)",
+      "line": 6,
+      "chapter": 9
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "forDate(date) -> List<CalendarSlot>",
+      "line": 19,
+      "chapter": 9
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "status(date) -> String",
+      "line": 21,
+      "chapter": 9
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "load() -> Future<void>",
+      "line": 27,
+      "chapter": 9
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "moveMonth(delta), today() and selectDate(date)",
+      "line": 51,
+      "chapter": 9
+    },
+    {
+      "file": "viewmodels/calendar_viewmodel.dart",
+      "symbol": "_changed() and dispose()",
+      "line": 15,
+      "chapter": 9
+    },
+    {
+      "file": "views/calendar.dart",
+      "symbol": "CalendarScreen constructor and build(context)",
+      "line": 15,
+      "chapter": 10
+    },
+    {
+      "file": "views/calendar.dart",
+      "symbol": "_CalendarBody._edit(context, vm)",
+      "line": 26,
+      "chapter": 10
+    },
+    {
+      "file": "views/calendar.dart",
+      "symbol": "_CalendarBody.build(context)",
+      "line": 37,
+      "chapter": 10
+    },
+    {
+      "file": "views/calendar.dart",
+      "symbol": "_Legend.build(context)",
+      "line": 202,
+      "chapter": 10
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "DateAvailabilityViewModel(service, date)",
+      "line": 6,
+      "chapter": 11
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "canSave getter",
+      "line": 12,
+      "chapter": 11
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "load() -> Future<void>",
+      "line": 17,
+      "chapter": 11
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "setAvailable(value)",
+      "line": 40,
+      "chapter": 11
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "save() -> Future<bool>",
+      "line": 47,
+      "chapter": 11
+    },
+    {
+      "file": "viewmodels/date_availability_viewmodel.dart",
+      "symbol": "_changed() and dispose()",
+      "line": 13,
+      "chapter": 11
+    },
+    {
+      "file": "views/date_manager.dart",
+      "symbol": "DateManagerScreen constructor and build(context)",
+      "line": 16,
+      "chapter": 12
+    },
+    {
+      "file": "views/date_manager.dart",
+      "symbol": "_DateManagerBody.build(context)",
+      "line": 25,
+      "chapter": 12
+    },
+    {
+      "file": "widgets/admin_widgets.dart",
+      "symbol": "adminGold, unavailableDayColor and _months",
+      "line": 4,
+      "chapter": 13
+    },
+    {
+      "file": "widgets/admin_widgets.dart",
+      "symbol": "monthLabel(d), dateLabel(d) and adminError(e)",
+      "line": 20,
+      "chapter": 13
+    },
+    {
+      "file": "widgets/admin_widgets.dart",
+      "symbol": "AdminContent constructor and build(context)",
+      "line": 30,
+      "chapter": 13
+    },
+    {
+      "file": "widgets/admin_widgets.dart",
+      "symbol": "AdminErrorNotice constructor and build(context)",
+      "line": 44,
+      "chapter": 13
+    },
+    {
+      "file": "widgets/admin_widgets.dart",
+      "symbol": "DayBookingsPreview constructor and build(context)",
+      "line": 63,
+      "chapter": 13
+    },
+    {
+      "file": "models/add_invoice_model.dart",
+      "symbol": "AddInvoiceModel constructor",
+      "line": 9,
+      "chapter": 14
+    },
+    {
+      "file": "models/add_invoice_model.dart",
+      "symbol": "AddInvoiceModel.fromMap(map) and toMap()",
+      "line": 18,
+      "chapter": 14
+    },
+    {
+      "file": "models/add_invoice_model.dart",
+      "symbol": "InvoiceBooking(id, label)",
+      "line": 43,
+      "chapter": 14
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "validateInvoicePdf(name, bytes) -> String?",
+      "line": 5,
+      "chapter": 14
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "InvoiceDataSource",
+      "line": 16,
+      "chapter": 14
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "AddInvoiceService({supabase})",
+      "line": 30,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "requireAdminId() -> Future<String>",
+      "line": 34,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "loadBookings() -> Future<List<InvoiceBooking>>",
+      "line": 17,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "_find(id) -> Future<AddInvoiceModel?>",
+      "line": 78,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "_matching(invoice, admin, booking, reference, path)",
+      "line": 87,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "signedInvoiceUrl(path) -> Future<Uri>",
+      "line": 26,
+      "chapter": 15
+    },
+    {
+      "file": "services/add_invoice_service.dart",
+      "symbol": "uploadInvoice(...) -> Future<AddInvoiceModel>",
+      "line": 104,
+      "chapter": 16
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "AddInvoiceViewModel({service, initialBookingId})",
+      "line": 7,
+      "chapter": 17
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "loadBookings() -> Future<void>",
+      "line": 26,
+      "chapter": 17
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "prepareForBooking(initialBookingId)",
+      "line": 44,
+      "chapter": 17
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "selectBooking(id) and setReference(value)",
+      "line": 57,
+      "chapter": 17
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "selectPdf(name, bytes)",
+      "line": 68,
+      "chapter": 17
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "submit() -> Future<bool>",
+      "line": 84,
+      "chapter": 18
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "uploadInvoice(bookingId, reference, fileName, fileBytes)",
+      "line": 130,
+      "chapter": 18
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "clearError()",
+      "line": 143,
+      "chapter": 18
+    },
+    {
+      "file": "viewmodels/add_invoice_view_model.dart",
+      "symbol": "_changed() and dispose()",
+      "line": 22,
+      "chapter": 18
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "AddInvoiceScreen constructor and createState()",
+      "line": 9,
+      "chapter": 19
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "_AddInvoiceScreenState.initState()",
+      "line": 26,
+      "chapter": 19
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "_AddInvoiceScreenState.build(context) and dispose()",
+      "line": 36,
+      "chapter": 19
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "_AddInvoiceBody._pick(context, vm)",
+      "line": 48,
+      "chapter": 19
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "_AddInvoiceBody._open(context, vm)",
+      "line": 72,
+      "chapter": 19
+    },
+    {
+      "file": "views/add_invoice.dart",
+      "symbol": "_AddInvoiceBody.build(context)",
+      "line": 88,
+      "chapter": 20
+    },
+    {
+      "file": "widgets/admin_bottom_nav.dart",
+      "symbol": "AdminBottomNav constructor and routes",
+      "line": 5,
+      "chapter": 21
+    },
+    {
+      "file": "widgets/admin_bottom_nav.dart",
+      "symbol": "AdminBottomNav.build(context) and onTap(index)",
+      "line": 11,
+      "chapter": 21
+    },
+    {
+      "file": "views/admin_more.dart",
+      "symbol": "AdminMoreScreen.build(context)",
+      "line": 10,
+      "chapter": 21
+    }
+  ],
+  "source_sha256": {
+    "app.dart": "3cacf444868105874f336adc080fff229d3c2475efe7c9c7e2636a23aade6744",
+    "main.dart": "96b1c2ae4dd591ea3d6f3c0d68da69b1c6edf1acab540719461bb58c5aea4066",
+    "models/add_invoice_model.dart": "77039b8fabd6e5c4b9f97b7db510599c52e2a29ff8fc30b50940551cbbff0b0b",
+    "models/calendar_model.dart": "b0a2106999d12afcd341b64c83caddc6cf9d10de31dfd46fbad4a6b113a8a81f",
+    "routes/route_manager.dart": "b0270f641e31c896a39ad30aa2c82735f59d494237f48582b8e63a476d093da6",
+    "services/add_invoice_service.dart": "1b456109b8ea103a0748f3df62a4d4208d7d13f75aff9a37f0eb0dac3635b220",
+    "services/admin_auth_service.dart": "3cf24da1835fe8096af3102961a99ac48a53fabee0e08a87f94d80f49a360ee0",
+    "services/calendar_service.dart": "753c670fb812105fc965ee8b9d9045a427e02ad563f302c45da305c55c8e7fc7",
+    "viewmodels/add_invoice_view_model.dart": "c07a6fb05a1df49a97d16f3ab79a6468b490be904d4c4a5a9132f1ba60e635f7",
+    "viewmodels/admin_auth_viewmodel.dart": "514eac253aa0317733fa7392212cd0e078792f460d716ac3c71bb6a2a8ac471a",
+    "viewmodels/calendar_viewmodel.dart": "3c2502de94ab4cd15b86290a803cef8fe8c3c4f3d433cb84ddc8bd7deccbf630",
+    "viewmodels/date_availability_viewmodel.dart": "4035f9e2572e5db0c5b7bc9a5509eb8fcbb8250e8c9c4af72974b96e1ba2760e",
+    "views/add_invoice.dart": "8631a4254c242b31522072d63ecca5175086482db30550fb38403cbdcebce87a",
+    "views/admin_entry.dart": "9a7c4e70263ace424c4b0c4ae8cd0fcccf4cabbb5ac4e2237321f9cbfaed215f",
+    "views/admin_more.dart": "cfd7f3d53236cddc74f2cf4662438ed27da77535d1911b7dc957af3d014dbbda",
+    "views/admin_sign_in.dart": "63f1db56b07ab3d39f6fc1668e941f760e183cdbb31744e56e068bfb93231dbc",
+    "views/calendar.dart": "56faf36d8ba51ec6983ee3c96932f817f3972758d1b7e4efed5c5b3a698d5308",
+    "views/date_manager.dart": "9dcdd7b5f31c56d3063a52f04f994f515684d479b63c79bca91c5f91c5e47cdb",
+    "views/supabase_setup.dart": "f784cdeb535102eaa23a73804c79ded613cc1ae92cb5c757d4894dfcf5d579a6",
+    "widgets/admin_bottom_nav.dart": "5cdec3057c4d55db73cadf4abdefaaabe236c42a8a80a9f3bcfde3962589ae46",
+    "widgets/admin_widgets.dart": "12bb324741fcca005e1a5aca099312a6440cb12802788bb7838a705399116a30"
+  }
+}

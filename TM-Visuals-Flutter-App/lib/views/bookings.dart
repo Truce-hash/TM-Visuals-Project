@@ -45,6 +45,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
             child: SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 71, 69, 69),
                   borderRadius: BorderRadius.circular(15),

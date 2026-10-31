@@ -9,7 +9,7 @@ class AdminAuthService {
     final id = userId;
     if (id == null) return null;
     final row = await client
-        .from('admins')
+        .from('admin')
         .select('admin_id')
         .eq('user_id', id)
         .maybeSingle();
