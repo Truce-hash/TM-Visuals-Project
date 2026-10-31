@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/readme/banner.png" alt="TM Visuals - Photography & Film" width="600" />
+<img src="assets/banner.png" alt="TM Visuals - Photography & Videography" width="600" />
 
 ### Photography & Videography Client Management System
 
@@ -15,7 +15,7 @@
 
 ![Stage](https://img.shields.io/badge/Stage-Phase%203%20Development%20%26%20Testing-FFB000?style=flat-square)
 ![Module](https://img.shields.io/badge/Module-ITC327W-333333?style=flat-square)
-![Last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/YOUR_REPO?style=flat-square)
+![Last commit](https://img.shields.io/github/last-commit/Truce-hash/TM-Visuals-Project?style=flat-square)
 
 </div>
 
@@ -120,14 +120,8 @@ timeline
 
 | Name |
 |---|
-| S Lukhele |
-| M Bonga |
-| S Mbasa |
-| Z Mvimbi |
-| K Matsane |
-| KTJ Phatsoane |
-| MF Mulaudzi |
-| B Lombaard |
+| S Lukhele | | M Bonga | | S Mbasa | | Z Mvimbi | | K Matsane | | KTJ Phatsoane | | MF Mulaudzi | | B Lombaard |
+
 
 <a href="https://github.com/Truce-hash/TM-Visuals-Project/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Truce-hash/TM-Visuals-Project" />
@@ -154,7 +148,6 @@ timeline
   <img src="https://contrib.rocks/image?repo=Zukes101/TM-Visuals-Project" />
 </a>
 
-</a>
 
 ---
 

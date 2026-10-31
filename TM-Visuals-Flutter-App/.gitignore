@@ -48,6 +48,7 @@ app.*.map.json
 
 # Local Supabase settings; never commit project credentials.
 /config/supabase.local.json
+/config.json
 
 # Generated Flutter platform plugin files
 /linux/flutter/ephemeral/

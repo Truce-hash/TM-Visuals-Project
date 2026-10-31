@@ -169,7 +169,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 const _amber = Color(0xFFFFB300);
 
 class InvoiceDetailsScreen extends StatelessWidget {
-  final BookingListModel booking;
+  final BookingList booking;
 
   /// URL of the invoice PDF (leave null if there is no invoice yet).
   final String? invoiceUrl;
@@ -193,10 +193,14 @@ class InvoiceDetailsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Delete invoice?',
-            style: TextStyle(color: Colors.white)),
-        content: const Text('This action cannot be undone.',
-            style: TextStyle(color: Colors.white70)),
+        title: const Text(
+          'Delete invoice?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -234,12 +238,14 @@ class InvoiceDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               child: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new,
-                    color: Colors.white, size: 22),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
             ),
-            const Divider(
-                color: _amber, height: 1, indent: 4, endIndent: 4),
+            const Divider(color: _amber, height: 1, indent: 4, endIndent: 4),
 
             // Title
             const Padding(
@@ -272,13 +278,18 @@ class InvoiceDetailsScreen extends StatelessWidget {
                             child: Text(
                               invoiceId ?? 'Reference',
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 22),
+                                color: Colors.white,
+                                fontSize: 22,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.file_download_outlined,
-                                color: Colors.white, size: 28),
+                            icon: const Icon(
+                              Icons.file_download_outlined,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                             onPressed: () {
                               // Add download functionality here
                             },
@@ -307,8 +318,9 @@ class InvoiceDetailsScreen extends StatelessWidget {
                             ),
                             Container(
                               width: 1,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               color: _amber,
                             ),
                             Expanded(
@@ -320,12 +332,12 @@ class InvoiceDetailsScreen extends StatelessWidget {
                                   Text(invoiceId ?? '—', style: white),
                                   const SizedBox(height: 6),
                                   Text(
-                                    receiver ?? booking.name,
+                                    receiver ?? booking.clientName ?? '—',
                                     style: white.copyWith(color: _amber),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(booking.date, style: white),
+                                  Text(booking.serviceId, style: white),
                                 ],
                               ),
                             ),
@@ -402,18 +414,25 @@ class InvoiceDetailsScreen extends StatelessWidget {
         showUnselectedLabels: false,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined, size: 28), label: "Home"),
+            icon: Icon(Icons.home_outlined, size: 28),
+            label: "Home",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_outlined, size: 28),
-              label: "Bookings"),
+            icon: Icon(Icons.menu_book_outlined, size: 28),
+            label: "Bookings",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month_outlined, size: 28),
-              label: "Calendar"),
+            icon: Icon(Icons.calendar_month_outlined, size: 28),
+            label: "Calendar",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined, size: 28),
-              label: "Profile"),
+            icon: Icon(Icons.account_circle_outlined, size: 28),
+            label: "Profile",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.menu, size: 28), label: "Menu"),
+            icon: Icon(Icons.menu, size: 28),
+            label: "Menu",
+          ),
         ],
       ),
     );
