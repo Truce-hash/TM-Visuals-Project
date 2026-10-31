@@ -66,6 +66,15 @@ builder.Services.AddSingleton<BookingAvailabilityService>();
 
 var app = builder.Build();
 
+//For budget, location South African
+var culture = new System.Globalization.CultureInfo("en-GB");
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(culture),
+    SupportedCultures = new[] { culture },
+    SupportedUICultures = new[] { culture }
+});
+
 //Middleware Pipeline
 app.MapGet("/todos", async (Supabase.Client supabase) =>
 {

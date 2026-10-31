@@ -1,25 +1,27 @@
 ﻿namespace TMVisualsWebApp.Models
 {
     /// <summary>
-    /// Allowed values for the Service and EventType dropdowns.
-    /// IMPORTANT: replace the placeholders below with the exact values
-    /// your Create view posts (the option "value" attributes).
+    /// Single source of truth for the Service and EventType dropdowns.
+    /// The Create Booking view builds its options from these lists and the
     /// </summary>
     public static class BookingOptions
     {
-        public static readonly HashSet<string> Services = new(StringComparer.OrdinalIgnoreCase)
+        public static readonly IReadOnlyList<string> Services = new[]
         {
             "Photography",
             "Videography",
             "Photography & Videography"
         };
-        public static readonly HashSet<string> EventTypes = new(StringComparer.OrdinalIgnoreCase)
+
+        public static readonly IReadOnlyList<string> EventTypes = new[]
         {
-            "Wedding",
-            "Corporate Event",
-            "Birthday",
             "Graduation",
+            "Wedding",
+            "Birthday",
+            "Corporate Event",
+            "Portrait Shoot",
             "Other"
         };
     }
 }
+
