@@ -35,7 +35,7 @@ class AddInvoiceService implements InvoiceDataSource {
     final user = client.auth.currentUser;
     if (user == null) throw const AuthException('Please sign in.');
     final row = await client
-        .from('admins')
+        .from('admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -66,7 +66,7 @@ class AddInvoiceService implements InvoiceDataSource {
           return InvoiceBooking(
             id: id,
             label:
-                '$name Ã‚Â· ${row['event_type'] ?? 'Booking'} Ã‚Â· ${row['booking_status']} Ã‚Â· ${id.substring(0, id.length < 8 ? id.length : 8)}',
+                '$name | ${row['event_type'] ?? 'Booking'} | ${row['booking_status']} | ${id.substring(0, id.length < 8 ? id.length : 8)}',
           );
         }),
       );

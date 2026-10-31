@@ -19,7 +19,7 @@ class PortfolioService {
     }
 
     final admin = await supabase
-        .from('admins')
+        .from('admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
