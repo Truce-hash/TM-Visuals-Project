@@ -14,7 +14,11 @@ Future<void> main() async {
       if (key.startsWith('sb_secret_')) {
         throw const FormatException('Use a public publishable key.');
       }
-      await Supabase.initialize(url: url, publishableKey: key, debug: false);
+      await Supabase.initialize(
+        url: url.trim(),
+        publishableKey: key.trim(),
+        debug: false,
+      );
       client = Supabase.instance.client;
     } catch (e) {
       error = e;
