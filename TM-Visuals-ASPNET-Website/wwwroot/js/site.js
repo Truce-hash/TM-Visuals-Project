@@ -3,8 +3,6 @@
 
 // Write your JavaScript code.
 
-<<<<<<< Updated upstream
-=======
 document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
     button.addEventListener('click', function () {
         var input = button.parentElement.querySelector('input');
@@ -22,7 +20,6 @@ if (resetPasswordForm) {
     });
 }
 
->>>>>>> Stashed changes
 var portfolioFilters = document.querySelector('[data-portfolio-filters]');
 if (portfolioFilters) {
     var portfolioCards = document.querySelectorAll('[data-portfolio-category]');
