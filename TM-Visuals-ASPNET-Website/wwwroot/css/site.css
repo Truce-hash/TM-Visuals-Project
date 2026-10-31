@@ -178,6 +178,14 @@ body {
     padding: 20px 24px 48px;
 }
 
+.work-hero {
+    margin: 0 -24px;
+    padding: 40px 24px 32px;
+    border-top: 3px solid #FFB400;
+    border-bottom: 3px solid #FFB400;
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url("/images/work-hero.png") center / cover no-repeat;
+}
+
 .main-title {
     margin: 24px 0;
     font-size: clamp(2rem, 5vw, 2.5rem);
@@ -231,6 +239,35 @@ body {
     margin-bottom: 20px;
 }
 
+.portfolio-items {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+.portfolio-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.portfolio-filter {
+    padding: 10px 18px;
+    border: 1px solid #E28A00;
+    border-radius: 999px;
+    background: #1b1b1b;
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.portfolio-filter:hover,
+.portfolio-filter.is-active {
+    background: #FFB400;
+    color: #111;
+}
+
 .portfolio-card {
     overflow: hidden;
     border: 1px solid #6b5f10;
@@ -238,12 +275,29 @@ body {
     background: #171717;
 }
 
+.portfolio-card[hidden] {
+    display: none;
+}
+
+.portfolio-card-media {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: #111;
+}
+
 .portfolio-card img,
-.portfolio-card video,
+.portfolio-card video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
 .portfolio-placeholder {
     display: flex;
     width: 100%;
-    height: 190px;
+    height: 100%;
     align-items: center;
     justify-content: center;
     object-fit: cover;
