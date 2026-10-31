@@ -5,6 +5,7 @@ import 'package:photography_flutter_application/views/booking_details.dart';
 import 'package:provider/provider.dart';
 import 'package:photography_flutter_application/services/Formatters.dart';
 import '../widgets/bookingStatusChip.dart';
+import '../widgets/admin_bottom_nav.dart';
 
 //Kamohelo P testing bookings screen
 
@@ -114,39 +115,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
               ),
             ),
           ),
-
-          BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.orange,
-            selectedItemColor: Colors.black,
-            unselectedItemColor: Colors.black,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home, size: 26),
-                label: "Home",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.book, size: 26),
-                label: "Bookings",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month, size: 26),
-                label: "Calendar",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person, size: 26),
-                label: "Profile",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.explore, size: 26),
-                label: "Explore",
-              ),
-            ],
-          ),
         ],
       ),
+      bottomNavigationBar: const AdminBottomNav(currentIndex: 0),
     );
   }
 
