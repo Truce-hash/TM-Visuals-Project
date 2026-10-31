@@ -10,25 +10,9 @@ class BookingRepository {
   final SupabaseClient _db = Supabase.instance.client;
 
   // One round trip: the booking, who asked, what for, and which slots.
-  // `alias:fk_column(...)` tells PostgREST which relationship to follow.
-  static final String _select = [
-    'booking_id',
-    'client_id',
-    'service_id',
-    'event_type',
-    'budget',
-    'requirements',
-    'number_of_people',
-    'location',
-    'terms_accepted',
-    'booking_status',
-    'created_at',
-    'updated_at',
-    'client:client_id(user:user_id(full_name,email,phone))',
-    'service:service_id(service_name)',
-    'booking_slot(booking_slot_id,time_slot_id,selection_status,expires_at,'
-        'time_slot:time_slot_id(slot_date,start_time,end_time))',
-  ].join(',');
+  // booking has no service_id column: services are linked through
+  // booking_service, so the select string lives in the model.
+  static const String _select = BookingList.selectQuery;
 
   Future<List<BookingList>> fetchAll({int limit = 500}) async {
     final rows = await _db
