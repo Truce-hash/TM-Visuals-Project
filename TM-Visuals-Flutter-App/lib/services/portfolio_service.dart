@@ -35,17 +35,17 @@ class PortfolioService {
 
   /// Fetches all categories ordered by category_name
   Future<List<PortfolioCategory>> fetchCategories() async {
-  final response = await supabase
-      .from(categoryTable)
-      .select('category_id, category_name')
-      .order('category_name');
+    final response = await supabase
+        .from(categoryTable)
+        .select('category_id, category_name')
+        .order('category_name');
 
-  return response
-      .map<PortfolioCategory>(
-        (item) => PortfolioCategory.fromMap(item),
-      )
-      .toList();
-}
+    return response
+        .map<PortfolioCategory>(
+          (item) => PortfolioCategory.fromMap(Map<String, dynamic>.from(item)),
+        )
+        .toList();
+  }
 
   /// Inserts a new category
   Future<Map<String, dynamic>> insertCategory(String name) async {
@@ -58,6 +58,36 @@ class PortfolioService {
         .single();
 
     return Map<String, dynamic>.from(inserted);
+  }
+
+  /// Renames a category. Throws if RLS blocked the change (0 rows updated).
+  Future<void> updateCategory(String id, String name) async {
+    await requireAdminId();
+
+    final rows = await supabase
+        .from(categoryTable)
+        .update({'category_name': name})
+        .eq('category_id', id)
+        .select('category_id');
+
+    if (rows.isEmpty) {
+      throw const PortfolioError('Could not update this category.');
+    }
+  }
+
+  /// Removes a category. Throws if RLS blocked the change (0 rows deleted).
+  Future<void> deleteCategory(String id) async {
+    await requireAdminId();
+
+    final rows = await supabase
+        .from(categoryTable)
+        .delete()
+        .eq('category_id', id)
+        .select('category_id');
+
+    if (rows.isEmpty) {
+      throw const PortfolioError('Could not remove this category.');
+    }
   }
 
   /// Uploads binary file to Supabase Storage
