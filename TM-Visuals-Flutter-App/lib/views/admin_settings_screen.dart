@@ -137,25 +137,6 @@ class AdminSettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.amber,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_outlined), label: 'Content'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined), label: 'Calendar'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_outlined), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-        ],
-      ),
     );
   }
 }
