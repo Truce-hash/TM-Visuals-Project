@@ -5,10 +5,13 @@
 }
 
 <div class="auth-page">
-    <div class="auth-card">
-        <div class="auth-brand">TM <span>Visuals</span></div>
-        <h1 class="auth-title">Create your account</h1>
-        <p class="auth-subtitle">Register to book shoots and receive your content.</p>
+    <section class="auth-card auth-card-register" aria-labelledby="auth-title">
+        <h1 id="auth-title" class="auth-title">Register to Start<br />Your Experience</h1>
+
+        @if (TempData["AuthMessage"] is string authMessage)
+        {
+            <p class="auth-status" role="status">@authMessage</p>
+        }
 
         <form asp-controller="Account" asp-action="Register" method="post" novalidate>
             @Html.AntiForgeryToken()
@@ -16,22 +19,33 @@
             <div asp-validation-summary="ModelOnly" class="auth-alert"></div>
 
             <div class="auth-field">
+                <label asp-for="Name" class="auth-label"></label>
+                <input asp-for="Name" class="auth-input" placeholder="Your name" autocomplete="name" />
+                <span asp-validation-for="Name" class="auth-error"></span>
+            </div>
+
+            <div class="auth-field">
                 <label asp-for="Email" class="auth-label"></label>
-                <input asp-for="Email" class="auth-input" placeholder="you@example.com" autocomplete="email" />
+                <input asp-for="Email" class="auth-input" placeholder="youremail@example.com" autocomplete="email" />
                 <span asp-validation-for="Email" class="auth-error"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="Phone" class="auth-label"></label>
+                <input asp-for="Phone" class="auth-input" placeholder="Your phone number" autocomplete="tel" />
+                <span asp-validation-for="Phone" class="auth-error"></span>
             </div>
 
             <div class="auth-field">
                 <label asp-for="Password" class="auth-label"></label>
                 <div class="auth-password">
-                    <input asp-for="Password" class="auth-input" placeholder="At least 8 characters" autocomplete="new-password" />
+                    <input asp-for="Password" class="auth-input" placeholder="Create a password" autocomplete="new-password" />
                     <button type="button" class="auth-toggle" data-toggle-password aria-label="Show or hide password">Show</button>
                 </div>
                 <span class="auth-hint">Use at least 8 characters.</span>
                 <span asp-validation-for="Password" class="auth-error"></span>
             </div>
 
- 
             <div class="auth-field">
                 <label asp-for="ConfirmPassword" class="auth-label"></label>
                 <div class="auth-password">
@@ -41,26 +55,19 @@
                 <span asp-validation-for="ConfirmPassword" class="auth-error"></span>
             </div>
 
-            <button type="submit" class="auth-button">Create account</button>
+            <button type="submit" class="auth-button">Register</button>
         </form>
 
+        <div class="auth-divider"><span>or</span></div>
+        <partial name="_GoogleSignInButton" />
+
         <p class="auth-switch">
-            Already have an account?
-            <a asp-controller="Account" asp-action="Login">Login here</a>
+            Have an account?
+            <a asp-controller="Account" asp-action="Login">Click to Login</a>
         </p>
-    </div>
+    </section>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var input = button.parentElement.querySelector('input');
-                var showing = input.type === 'text';
-                input.type = showing ? 'password' : 'text';
-                button.textContent = showing ? 'Show' : 'Hide';
-            });
-        });
-    </script>
 }

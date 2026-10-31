@@ -3,6 +3,26 @@
 
 // Write your JavaScript code.
 
+<<<<<<< Updated upstream
+=======
+document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var input = button.parentElement.querySelector('input');
+        var isVisible = input.type === 'text';
+        input.type = isVisible ? 'password' : 'text';
+        button.textContent = isVisible ? 'Show' : 'Hide';
+    });
+});
+
+var resetPasswordForm = document.querySelector('#reset-password-form');
+if (resetPasswordForm) {
+    resetPasswordForm.querySelectorAll('input[type="password"]').forEach(function (input) {
+        input.required = true;
+        input.minLength = 8;
+    });
+}
+
+>>>>>>> Stashed changes
 var portfolioFilters = document.querySelector('[data-portfolio-filters]');
 if (portfolioFilters) {
     var portfolioCards = document.querySelectorAll('[data-portfolio-category]');
