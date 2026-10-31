@@ -32,6 +32,10 @@
                 </div>
             </a>
         }
+        @if (!Model.Bookings.Any())
+        {
+            <p class="booking-empty">You have no bookings yet.</p>
+        }
     </div>
 
     <hr class="line" />
