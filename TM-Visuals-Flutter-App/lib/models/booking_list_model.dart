@@ -39,7 +39,7 @@ class BookedSlot {
   final String start;
   final String end;
   final String selectionStatus; // held | confirmed | released
-  final DateTime? expiresAt;
+  final DateTime? expiresAt; // not a booking_slot column; kept for compatibility
 
   const BookedSlot({
     required this.bookingSlotId,
@@ -90,9 +90,23 @@ class TimeBlock {
 
 @immutable
 class BookingList {
+  /// Use this in `.from('booking').select(BookingList.selectQuery)`.
+  /// booking has no service_id column: services come through booking_service.
+  static const String selectQuery = '''
+    booking_id, client_id, event_type, budget, requirements,
+    number_of_people, location, terms_accepted, booking_status,
+    created_at, updated_at, hold_expires_at,
+    client ( user:users ( full_name, email, phone ) ),
+    booking_service ( service ( service_id, service_name ) ),
+    booking_slot (
+      booking_slot_id, time_slot_id, selection_status,
+      time_slot ( slot_date, start_time, end_time )
+    )
+  ''';
+
   final String id;
   final String clientId;
-  final String serviceId;
+  final String serviceId; // first linked service ('' if none)
   final String eventType;
   final double? budget;
   final String requirements;
@@ -102,12 +116,13 @@ class BookingList {
   final BookingStatus status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? holdExpires; // booking.hold_expires_at
 
   // Joined data (not columns of booking itself)
   final String? clientName;
   final String? clientEmail;
   final String? clientPhone;
-  final String? serviceName;
+  final String? serviceName; // all linked service names, comma separated
   final List<BookedSlot> slots;
 
   const BookingList({
@@ -123,6 +138,7 @@ class BookingList {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.holdExpires,
     this.clientName,
     this.clientEmail,
     this.clientPhone,
@@ -143,6 +159,7 @@ class BookingList {
     BookingStatus? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? holdExpires,
     String? clientName,
     String? clientEmail,
     String? clientPhone,
@@ -162,6 +179,7 @@ class BookingList {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      holdExpires: holdExpires ?? this.holdExpires,
       clientName: clientName ?? this.clientName,
       clientEmail: clientEmail ?? this.clientEmail,
       clientPhone: clientPhone ?? this.clientPhone,
@@ -174,7 +192,11 @@ class BookingList {
     final user =
         (j['client'] as Map<String, dynamic>?)?['user']
             as Map<String, dynamic>?;
-    final service = j['service'] as Map<String, dynamic>?;
+
+    final services = ((j['booking_service'] as List?) ?? const [])
+        .map((e) => (e as Map<String, dynamic>)['service'])
+        .whereType<Map<String, dynamic>>()
+        .toList();
 
     final slots =
         ((j['booking_slot'] as List?) ?? const [])
@@ -186,7 +208,7 @@ class BookingList {
     return BookingList(
       id: j['booking_id'].toString(),
       clientId: j['client_id'].toString(),
-      serviceId: j['service_id'].toString(),
+      serviceId: services.isEmpty ? '' : services.first['service_id'].toString(),
       eventType: (j['event_type'] as String?) ?? '',
       budget: j['budget'] == null
           ? null
@@ -198,10 +220,15 @@ class BookingList {
       status: BookingStatus.parse(j['booking_status'] as String?),
       createdAt: DateTime.parse(j['created_at'] as String).toLocal(),
       updatedAt: DateTime.parse(j['updated_at'] as String).toLocal(),
+      holdExpires: j['hold_expires_at'] == null
+          ? null
+          : DateTime.parse(j['hold_expires_at'] as String).toLocal(),
       clientName: user?['full_name'] as String?,
       clientEmail: user?['email'] as String?,
       clientPhone: user?['phone'] as String?,
-      serviceName: service?['service_name'] as String?,
+      serviceName: services.isEmpty
+          ? null
+          : services.map((s) => s['service_name']).join(', '),
       slots: slots,
     );
   }
@@ -234,16 +261,8 @@ class BookingList {
   int get totalMinutes => blocks.fold(0, (sum, b) => sum + b.minutes);
 
   /// When a pending request's slot hold runs out (null if none recorded).
-  DateTime? get holdExpiresAt {
-    if (status != BookingStatus.pending) return null;
-    final times =
-        slots
-            .where((s) => s.selectionStatus == 'held' && s.expiresAt != null)
-            .map((s) => s.expiresAt!)
-            .toList()
-          ..sort();
-    return times.isEmpty ? null : times.first;
-  }
+  DateTime? get holdExpiresAt =>
+      status == BookingStatus.pending ? holdExpires : null;
 
   // ---- which actions the admin may take (single source of truth for the UI) ----
 
