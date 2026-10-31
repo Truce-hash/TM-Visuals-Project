@@ -326,7 +326,7 @@ say('The bottom bar handles the main pages. More groups the secondary pages. The
 page('Supabase data relationships and security boundaries')
 table(['Data source','How this module uses it'],[
 ('Supabase Auth','Signs in, signs out and provides the current user UUID.'),
-('admins','Current source looks up administrator membership and admin_id.'),
+('admin','Current source looks up administrator membership and admin_id.'),
 ('time_slot','Supplies dates and start/end ranges.'),
 ('booking_slot','Connects slots to bookings and supplies selection_status.'),
 ('booking client users','Supply event, location, booking status and client display names.'),
