@@ -52,24 +52,8 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete delivery?'),
-        content: const Text('This removes the delivery record for the client.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    if (!await _confirmDelete() || !mounted) return;
+
     try {
       await context.read<ContentViewModel>().deleteContent(
         widget.content.contentId,
@@ -81,6 +65,27 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
         SnackBar(content: Text('Could not delete content: $error')),
       );
     }
+  }
+
+  Future<bool> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete delivery?'),
+        content: const Text('This removes the delivery record for the client.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<void> _openLink() async {
@@ -97,7 +102,7 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ContentViewModel>();
+    final contentViewModel = context.watch<ContentViewModel>();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -113,7 +118,7 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
           if (!_isEditing)
             IconButton(
               tooltip: 'Delete content',
-              onPressed: vm.isSaving ? null : _delete,
+              onPressed: contentViewModel.isSaving ? null : _delete,
               icon: const Icon(Icons.delete_outline),
             ),
         ],
@@ -145,14 +150,9 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
               enabled: _isEditing,
               keyboardType: TextInputType.url,
               decoration: const InputDecoration(labelText: 'Delivery link'),
-              validator: (value) {
-                final uri = Uri.tryParse(value?.trim() ?? '');
-                return uri != null &&
-                        uri.isAbsolute &&
-                        (uri.scheme == 'http' || uri.scheme == 'https')
-                    ? null
-                    : 'Enter a valid http or https link.';
-              },
+              validator: (value) => isValidDeliveryLink(value ?? '')
+                  ? null
+                  : 'Enter a valid http or https link.',
             ),
             const SizedBox(height: 12),
             Text(
@@ -168,8 +168,8 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
               )
             else ...[
               FilledButton(
-                onPressed: vm.isSaving ? null : _save,
-                child: vm.isSaving
+                onPressed: contentViewModel.isSaving ? null : _save,
+                child: contentViewModel.isSaving
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -178,7 +178,7 @@ class _ContentDetailsViewState extends State<ContentDetailsView> {
                     : const Text('Save changes'),
               ),
               TextButton(
-                onPressed: vm.isSaving
+                onPressed: contentViewModel.isSaving
                     ? null
                     : () => setState(() {
                         _isEditing = false;

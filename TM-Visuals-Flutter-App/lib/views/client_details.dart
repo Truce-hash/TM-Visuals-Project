@@ -22,36 +22,36 @@ class _ClientDetailsContent extends StatelessWidget {
   final Clients client;
 
   Future<void> _addContent(BuildContext context) async {
-    final vm = context.read<ContentViewModel>();
+    final contentViewModel = context.read<ContentViewModel>();
     final added = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider.value(
-          value: vm,
+          value: contentViewModel,
           child: AddContentView(clientId: client.id),
         ),
       ),
     );
-    if (added == true) await vm.loadForClient(client.id);
+    if (added == true) await contentViewModel.loadForClient(client.id);
   }
 
   Future<void> _openContent(BuildContext context, ContentModel content) async {
-    final vm = context.read<ContentViewModel>();
+    final contentViewModel = context.read<ContentViewModel>();
     final changed = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider.value(
-          value: vm,
+          value: contentViewModel,
           child: ContentDetailsView(content: content),
         ),
       ),
     );
-    if (changed == true) await vm.loadForClient(client.id);
+    if (changed == true) await contentViewModel.loadForClient(client.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ContentViewModel>();
+    final contentViewModel = context.watch<ContentViewModel>();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -130,25 +130,26 @@ class _ClientDetailsContent extends StatelessWidget {
             'Delivered Content',
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
-          if (vm.isLoading && vm.items.isEmpty)
+          if (contentViewModel.isLoading && contentViewModel.items.isEmpty)
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: CircularProgressIndicator(color: Colors.orange),
               ),
             )
-          else if (vm.errorMessage != null && vm.items.isEmpty)
+          else if (contentViewModel.errorMessage != null &&
+              contentViewModel.items.isEmpty)
             Text(
-              vm.errorMessage!,
+              contentViewModel.errorMessage!,
               style: const TextStyle(color: Colors.redAccent),
             )
-          else if (vm.items.isEmpty)
+          else if (contentViewModel.items.isEmpty)
             const Text(
               'No content has been delivered to this client yet.',
               style: TextStyle(color: Colors.grey),
             )
           else
-            ...vm.items.map(
+            ...contentViewModel.items.map(
               (item) => Card(
                 color: const Color(0xFF1C1C1C),
                 child: ListTile(
@@ -168,11 +169,12 @@ class _ClientDetailsContent extends StatelessWidget {
                 ),
               ),
             ),
-          if (vm.errorMessage != null && vm.items.isNotEmpty)
+          if (contentViewModel.errorMessage != null &&
+              contentViewModel.items.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                vm.errorMessage!,
+                contentViewModel.errorMessage!,
                 style: const TextStyle(color: Colors.redAccent),
               ),
             ),

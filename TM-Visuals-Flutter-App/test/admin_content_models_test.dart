@@ -4,6 +4,13 @@ import 'package:photography_flutter_application/models/content_model.dart';
 import 'package:photography_flutter_application/models/service_list_model.dart';
 
 void main() {
+  test('delivery links must use http or https', () {
+    expect(isValidDeliveryLink('https://example.com/gallery'), isTrue);
+    expect(isValidDeliveryLink('http://example.com/gallery'), isTrue);
+    expect(isValidDeliveryLink('ftp://example.com/gallery'), isFalse);
+    expect(isValidDeliveryLink('not a link'), isFalse);
+  });
+
   test('service rows map active state and identifiers', () {
     final service = ServicesListModel.fromMap({
       'service_id': 'service-1',
@@ -58,5 +65,17 @@ void main() {
     expect(content.uploadedAt, '2025-04-05');
     expect(content.eventType, 'Wedding');
     expect(content.clientName, 'Alex Example');
+  });
+
+  test('booking options include the client name in their label', () {
+    final booking = ContentBookingOption.fromMap({
+      'booking_id': 'booking-1',
+      'booking_status': 'confirmed',
+      'client': {
+        'user': {'full_name': 'Alex Example'},
+      },
+    });
+
+    expect(booking.label, 'Booking - Alex Example (confirmed)');
   });
 }
