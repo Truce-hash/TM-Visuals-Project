@@ -1,11 +1,18 @@
-﻿@model List<TMVisualsWebApp.Models.PortfolioItem>
+@model List<TMVisualsWebApp.Models.PortfolioItem>
 @{
-    ViewData["Title"] = "My Work";
+    ViewData["Title"] = "Portfolio";
+    var categories = Model
+        .Select(item => item.Category.Trim())
+        .Where(category => category.Length > 0)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(category => category)
+        .ToList();
 }
 
 <div class="work-page">
     <section class="work-hero">
         <h1 class="main-title">Our Work in Three Words</h1>
+        <hr class="work-divider" />
         <div class="three-cards">
             <article class="work-card">
                 <h2>Storytelling</h2>
@@ -23,16 +30,24 @@
     </section>
 
     <section class="selected-work">
-        <h2>Selected Work</h2>
-
-        <div class="category-filters">
-            <button type="button" class="filter-btn active" data-filter="all">All</button>
-            <button type="button" class="filter-btn" data-filter="Graduations">Graduations</button>
-            <button type="button" class="filter-btn" data-filter="Food">Food</button>
-            <button type="button" class="filter-btn" data-filter="Branding">Branding</button>
-            <button type="button" class="filter-btn" data-filter="Weddings">Weddings</button>
+        <h2>Portfolio</h2>
+        <div class="portfolio-filters" data-portfolio-filters aria-label="Filter portfolio by category">
+            <button type="button"
+                    class="portfolio-filter is-active"
+                    data-portfolio-filter="all"
+                    aria-pressed="true">
+                All
+            </button>
+            @foreach (var category in categories)
+            {
+                <button type="button"
+                        class="portfolio-filter"
+                        data-portfolio-filter="@category"
+                        aria-pressed="false">
+                    @category
+                </button>
+            }
         </div>
-
         @if (ViewData["PortfolioError"] is string portfolioError)
         {
             <p class="delivery-note" role="status">@portfolioError</p>
@@ -45,28 +60,34 @@
         <div class="portfolio-items">
             @foreach (var item in Model)
             {
-                <article class="portfolio-card" data-category="@item.Category">
-                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                    {
-                        @if (string.Equals(item.MediaType, "video", StringComparison.OrdinalIgnoreCase))
+                <article class="portfolio-card" data-portfolio-category="@item.Category.Trim()">
+                    <div class="portfolio-card-media">
+                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
                         {
-                            <video controls preload="metadata" aria-label="@item.Title">
-                                <source src="@item.ImageUrl" />
-                            </video>
+                            @if (string.Equals(item.MediaType, "video", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <video controls preload="metadata" aria-label="@item.Title">
+                                    <source src="@item.ImageUrl" />
+                                </video>
+                            }
+                            else
+                            {
+                                <img src="@item.ImageUrl" alt="@item.Title" loading="lazy" />
+                            }
                         }
                         else
                         {
-                            <img src="@item.ImageUrl" alt="@item.Title" />
+                            <div class="portfolio-placeholder" aria-hidden="true">
+                                @item.Category
+                            </div>
                         }
-                    }
-                    else
-                    {
-                        <div class="portfolio-placeholder" aria-hidden="true">
-                            @item.Category
-                        </div>
-                    }
+                    </div>
                     <div class="portfolio-card-copy">
-                        <span class="portfolio-category">@item.Category</span>
+                        @if (!string.IsNullOrWhiteSpace(item.Category) &&
+                             !string.Equals(item.Category, item.Title, StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="portfolio-category">@item.Category</span>
+                        }
                         <h3>@item.Title</h3>
                         @if (!string.IsNullOrWhiteSpace(item.Description))
                         {
@@ -82,20 +103,3 @@
         </p>
     </section>
 </div>
-
-<script>
-    document.querySelectorAll('.filter-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.filter-btn').forEach(function (b) {
-                b.classList.remove('active');
-            });
-            btn.classList.add('active');
-
-            var filter = btn.dataset.filter;
-            document.querySelectorAll('.portfolio-card').forEach(function (card) {
-                card.style.display =
-                    (filter === 'all' || card.dataset.category === filter) ? '' : 'none';
-            });
-        });
-    });
-</script>

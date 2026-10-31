@@ -5,10 +5,13 @@
 }
  
 <div class="auth-page">
-    <div class="auth-card">
-        <div class="auth-brand">TM <span>Visuals</span></div>
-        <h1 class="auth-title">Welcome back</h1>
-        <p class="auth-subtitle">Log in to manage your bookings and content.</p>
+    <section class="auth-card auth-card-login" aria-labelledby="auth-title">
+        <h1 id="auth-title" class="auth-title">Welcome Back</h1>
+
+        @if (TempData["AuthMessage"] is string authMessage)
+        {
+            <p class="auth-status" role="status">@authMessage</p>
+        }
 
         <form asp-controller="Account" asp-action="Login" method="post" novalidate>
             @Html.AntiForgeryToken()
@@ -17,7 +20,7 @@
 
             <div class="auth-field">
                 <label asp-for="Email" class="auth-label"></label>
-                <input asp-for="Email" class="auth-input" placeholder="you@example.com" autocomplete="email" />
+                <input asp-for="Email" class="auth-input" placeholder="youremail@example.com" autocomplete="email" />
                 <span asp-validation-for="Email" class="auth-error"></span>
             </div>
 
@@ -30,6 +33,10 @@
                 <span asp-validation-for="Password" class="auth-error"></span>
             </div>
 
+            <p class="auth-forgot">
+                <a asp-controller="Account" asp-action="ForgotPassword">Forgot password?</a>
+            </p>
+
             <div class="auth-check">
                 <input asp-for="RememberMe" class="auth-checkbox" />
                 <label asp-for="RememberMe" class="auth-check-label"></label>
@@ -38,23 +45,16 @@
             <button type="submit" class="auth-button">Login</button>
         </form>
 
+        <div class="auth-divider"><span>or</span></div>
+        <partial name="_GoogleSignInButton" />
+
         <p class="auth-switch">
             Don't have an account?
-            <a asp-controller="Account" asp-action="Register">Register here</a>
+            <a asp-controller="Account" asp-action="Register">Register</a>
         </p>
-    </div>
+    </section>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.querySelectorAll('[data-toggle-password]').forEach(function (button) {
-            button.addEventListener('click', function () {
-                var input = button.parentElement.querySelector('input');
-                var showing = input.type === 'text';
-                input.type = showing ? 'password' : 'text';
-                button.textContent = showing ? 'Show' : 'Hide';
-            });
-        });
-    </script>
 }
