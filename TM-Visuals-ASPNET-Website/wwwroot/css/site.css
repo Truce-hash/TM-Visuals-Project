@@ -2503,3 +2503,186 @@ main {
         padding: 20px;
     }
 }
+
+
+
+/* ---------- Booking cancelled page ---------- */
+.cancelled-page {
+    display: flex;
+    justify-content: center;
+    padding: 80px 20px 100px;
+}
+
+.cancelled-card {
+    width: 100%;
+    max-width: 420px;
+    background: #1f1f1f;
+    border: 1px solid #2e2e2e;
+    border-radius: 16px;
+    padding: 44px 40px;
+    text-align: center;
+    animation: cancelledPop 0.5s ease both;
+}
+
+@keyframes cancelledPop {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.cancelled-icon {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .cancelled-icon svg {
+        width: 38px;
+        height: 38px;
+        stroke: #2fa84f;
+        stroke-dasharray: 30;
+        stroke-dashoffset: 30;
+        animation: cancelledDraw 0.6s 0.3s ease forwards;
+    }
+
+@keyframes cancelledDraw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.cancelled-text {
+    font-size: 1.05rem;
+    color: #f2f2f2;
+    margin-bottom: 8px;
+}
+
+.cancelled-sub {
+    font-size: 0.85rem;
+    color: #9a9a9a;
+    margin-bottom: 22px;
+}
+
+.cancelled-link {
+    display: inline-block;
+    border: 1px solid #E0C61F;
+    border-radius: 8px;
+    padding: 9px 24px;
+    color: #E0C61F;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+    .cancelled-link:hover {
+        background-color: #E0C61F;
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+/* The Cancel booking button is now a <button> inside a form */
+button.action-btn {
+    font: inherit;
+    cursor: pointer;
+}
+
+/* ---------- Cancel confirmation dialog ---------- */
+.confirm-dialog {
+    background: #1a1a1a;
+    color: #f2f2f2;
+    border: 1px solid #3a3a3a;
+    border-radius: 16px;
+    padding: 32px 36px;
+    max-width: 440px;
+    width: calc(100% - 40px);
+    text-align: center;
+    margin: auto;
+}
+
+    .confirm-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.75);
+    }
+
+    .confirm-dialog[open] {
+        animation: confirmPop 0.25s ease both;
+    }
+
+@keyframes confirmPop {
+    from {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.confirm-dialog h3 {
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+}
+
+.confirm-dialog p {
+    font-size: 0.9rem;
+    color: #bdbdbd;
+    margin-bottom: 24px;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.confirm-keep,
+.confirm-yes {
+    font: inherit;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.confirm-keep {
+    background: transparent;
+    border: 1px solid #E0C61F;
+    color: #E0C61F;
+}
+
+    .confirm-keep:hover {
+        background: #E0C61F;
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+.confirm-yes {
+    background: transparent;
+    border: 1px solid #d9534f;
+    color: #ff6b6b;
+}
+
+    .confirm-yes:hover {
+        background: #d9534f;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+/* The Cancel booking button is a <button> now, so match the link-style buttons */
+button.action-btn {
+    font: inherit;
+    cursor: pointer;
+}

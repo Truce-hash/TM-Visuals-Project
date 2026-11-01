@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Booking Cancelled";
+}
+
+<div class="cancelled-page">
+    <div class="cancelled-card">
+        <div class="cancelled-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+
+        <p class="cancelled-text">Your booking has been cancelled</p>
+        <p class="cancelled-sub">Taking you back to our services...</p>
+
+        <a id="servicesLink" class="cancelled-link" asp-controller="Home" asp-action="Services">Go to Services</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Figma note: this page redirects to the services screen
+        setTimeout(function () {
+            window.location.href = document.getElementById("servicesLink").href;
+        }, 6000);
+    </script>
+}

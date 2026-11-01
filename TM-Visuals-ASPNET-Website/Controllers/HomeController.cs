@@ -170,6 +170,27 @@ namespace TMVisualsWebApp.Controllers
             return View(booking);
         }
 
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelBooking(int id)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+
+            if (!_store.Cancel(id, email))
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(CancellationNotification));
+        }
+
+        [Authorize]
+        public IActionResult CancellationNotification()
+        {
+            return View();
+        }
+
 
 
 
