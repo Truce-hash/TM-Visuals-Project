@@ -48,6 +48,7 @@ builder.Services.AddHttpClient<PortfolioCatalogService>(client =>
 {
     client.BaseAddress = new Uri("https://YOUR-SUPABASE-URL/");   // adjust to your real endpoint
 });
+builder.Services.AddHttpClient<ServicesCatalogService>();
 
 builder.Services.AddAuthorization();
 

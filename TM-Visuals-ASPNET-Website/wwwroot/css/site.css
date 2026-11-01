@@ -128,6 +128,113 @@ body {
     min-height: 380px;
 }
 
+/* Services page */
+.services-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 72px 24px 90px;
+}
+
+.services-heading {
+    margin-bottom: 42px;
+    text-align: center;
+}
+
+.services-eyebrow {
+    margin-bottom: 8px;
+    color: #ffcf36;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.services-heading h1 {
+    color: #FFB400;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+
+.services-heading h1 span {
+    color: white;
+}
+
+.services-intro {
+    max-width: 620px;
+    margin: 12px auto 0;
+    color: #bdbdbd;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+.service-card {
+    min-height: 180px;
+    padding: 30px 24px;
+    border: 1px solid rgba(255, 180, 0, 0.18);
+    background:
+        linear-gradient(145deg, rgba(255, 180, 0, 0.14), transparent 55%),
+        #171717;
+}
+
+.service-card h2 {
+    margin-bottom: 16px;
+    color: #FFB400;
+    font-size: 22px;
+    text-transform: uppercase;
+}
+
+.service-card p,
+.services-message {
+    color: #ddd;
+    line-height: 1.6;
+}
+
+.services-booking {
+    margin-top: 34px;
+    text-align: center;
+}
+
+.services-booking p {
+    margin-bottom: 14px;
+    color: #bdbdbd;
+}
+
+.services-booking a {
+    display: inline-block;
+    min-width: 220px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    background: #e0a100;
+    color: #111;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.services-booking a:hover {
+    background: #ffb400;
+    color: #111;
+}
+
+@media (min-width: 768px) {
+    .services-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .services-page {
+        padding-top: 48px;
+    }
+}
+
 /* Feature titles */
 .home-features {
     display: flex;
