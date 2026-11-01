@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Text.Json;
 using TMVisualsWebApp.Models;
 using TMVisualsWebApp.Services;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TMVisualsWebApp.Controllers
 {
@@ -42,15 +44,20 @@ namespace TMVisualsWebApp.Controllers
             return Json(new { days = _availability.GetMonth(year, month) });
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult CreateBooking()
         {
             // Don't leave an old confirmation sitting in TempData next to a new booking.
             TempData.Remove("BookingConfirmation");
 
-            return View(new Booking());
+            return View(new Booking
+            {
+                Email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty
+            });
         }
 
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateBooking(
@@ -71,6 +78,12 @@ namespace TMVisualsWebApp.Controllers
                 nameof(Booking.AcceptTerms))]
             Booking booking)
         {
+
+            // Use the logged-in user's email so the booking shows on their Profile
+            booking.Email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+            ModelState.Remove(nameof(Booking.Email));
+
+
             NormalizeBooking(booking);
             ValidateBooking(booking);
 
@@ -111,6 +124,7 @@ namespace TMVisualsWebApp.Controllers
             return RedirectToAction(nameof(Confirmation));
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Confirmation()
         {
