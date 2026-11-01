@@ -24,7 +24,21 @@
     </div>
 
     <div class="action-row">
-        <a class="action-btn cancel" href="#">Cancel booking</a>
+        @if (Model.Status != "Cancelled")
+        {
+            <button type="button" class="action-btn cancel" id="openCancel">Cancel booking</button>
+
+            <dialog id="cancelDialog" class="confirm-dialog">
+                <h3>Are you sure you want to cancel this booking?</h3>
+                <p>The 50% deposit is non-refundable.</p>
+
+                <form asp-controller="Home" asp-action="CancelBooking" asp-route-id="@Model.Id"
+                      method="post" class="confirm-actions">
+                    <button type="button" class="confirm-keep" id="keepBooking">No, keep booking</button>
+                    <button type="submit" class="confirm-yes">Yes, cancel booking</button>
+                </form>
+            </dialog>
+        }
         <a class="action-btn back" asp-controller="Home" asp-action="Profile">Back to My Profile</a>
     </div>
 
@@ -34,3 +48,21 @@
     </div>
 
 </div>
+
+
+@section Scripts {
+    <script>
+        const dlg = document.getElementById("cancelDialog");
+        if (dlg) {
+            document.getElementById("openCancel").addEventListener("click", function () {
+                dlg.showModal();
+            });
+            document.getElementById("keepBooking").addEventListener("click", function () {
+                dlg.close();
+            });
+            dlg.addEventListener("click", function (e) {
+                if (e.target === dlg) dlg.close();
+            });
+        }
+    </script>
+}

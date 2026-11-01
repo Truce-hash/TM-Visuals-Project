@@ -129,5 +129,23 @@ namespace TMVisualsWebApp.Services
                 _bookings.Add(booking);
             }
         }
+
+        public bool Cancel(int id, string email)
+        {
+            lock (_lock)
+            {
+                var booking = _bookings.FirstOrDefault(b =>
+                    b.Id == id &&
+                    string.Equals(b.Email, email, StringComparison.OrdinalIgnoreCase));
+
+                if (booking == null || booking.Status == "Cancelled" || booking.Status == "Declined")
+                {
+                    return false;
+                }
+
+                booking.Status = "Cancelled";
+                return true;
+            }
+        }
     }
 }
