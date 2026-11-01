@@ -131,6 +131,9 @@ namespace TMVisualsWebApp.Controllers
             return View(booking);
         }
 
+
+
+
         // DELETE this entire block:
         // private static readonly List<ClientContent> contentItems = new() { ... };
 
@@ -192,3 +195,6 @@ namespace TMVisualsWebApp.Controllers
         }
     }
 }
+
+
+
