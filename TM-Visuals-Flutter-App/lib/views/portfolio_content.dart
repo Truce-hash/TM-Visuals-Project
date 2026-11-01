@@ -7,14 +7,28 @@ import '/widgets/portfolio_widgets.dart';
 const Color _yellow = Color(0xFFFFB900);
 const Color _background = Colors.black;
 
-class PortfolioContentScreen extends StatefulWidget {
+/// Creates a fresh PortfolioViewModel every time this screen opens and
+/// disposes it when the screen closes, so nothing is carried over.
+class PortfolioContentScreen extends StatelessWidget {
   const PortfolioContentScreen({super.key});
 
   @override
-  State<PortfolioContentScreen> createState() => _PortfolioContentScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => PortfolioViewModel(),
+      child: const _PortfolioContentView(),
+    );
+  }
 }
 
-class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
+class _PortfolioContentView extends StatefulWidget {
+  const _PortfolioContentView();
+
+  @override
+  State<_PortfolioContentView> createState() => _PortfolioContentViewState();
+}
+
+class _PortfolioContentViewState extends State<_PortfolioContentView> {
   final TextEditingController titleController = TextEditingController();
 
   @override
@@ -22,6 +36,7 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
     super.initState();
     // Fetch categories after the first frame via the ViewModel
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<PortfolioViewModel>().loadCategories(onError: showMessage);
     });
   }
