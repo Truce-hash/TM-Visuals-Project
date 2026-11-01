@@ -250,9 +250,9 @@ class _PortfolioContentScreenState extends State<PortfolioContentScreen> {
                                   ),
                                 ],
                               )
-                            : MediaPreviewWidget(
-                                file: file,
-                                fileData: vm.selectedFileData,
+                            : MediaPreview(
+                                isVideo: PortfolioViewModel.isVideo(file),
+                                imageBytes: vm.selectedFileData,
                                 videoController: vm.videoController,
                                 isVideoLoading: vm.isVideoLoading,
                                 onReturnFromFullscreen: () async {
