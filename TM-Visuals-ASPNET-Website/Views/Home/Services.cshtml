@@ -4,37 +4,49 @@
 }
 
 <section class="services-page">
-    <header class="services-heading">
+
+    <header class="services-hero">
         <p class="services-eyebrow">Our Services</p>
-        <h1>What <span>We Offer</span></h1>
-        <p class="services-intro">Choose the service that best fits the moments you want us to capture.</p>
+        <h1>Capturing your <span>story, creatively</span></h1>
+        <p class="services-intro">
+            TM Visuals provides professional photography and videography services
+            designed to capture your most important moments and bring your vision to life.
+        </p>
+        <hr class="services-line" />
     </header>
 
-    @if (ViewData["ServicesError"] is string servicesError)
-    {
-        <p class="services-message" role="status">@servicesError</p>
-    }
-    else if (Model.Count == 0)
-    {
-        <p class="services-message">Our services will appear here when they are available.</p>
-    }
-    else
-    {
-        <div class="services-grid">
-            @foreach (var service in Model)
-            {
-                <article class="service-card">
-                    <h2>@service.Name</h2>
-                    @if (!string.IsNullOrWhiteSpace(service.Description))
-                    {
-                        <p>@service.Description</p>
-                    }
-                </article>
-            }
-        </div>
-        <div class="services-booking">
-            <p>Ready to create your story?</p>
-            <a asp-controller="Booking" asp-action="CreateBooking">Book your session today</a>
-        </div>
-    }
+    <div class="services-packages">
+        <p class="services-eyebrow">Packages</p>
+        <h2 class="services-title">What We Offer</h2>
+
+        @if (ViewData["ServicesError"] is string servicesError)
+        {
+            <p class="services-message" role="status">@servicesError</p>
+        }
+        else if (Model.Count == 0)
+        {
+            <p class="services-message">Our services will appear here when they are available.</p>
+        }
+        else
+        {
+            <div class="services-grid">
+                @foreach (var service in Model)
+                {
+                    <article class="service-card">
+                        <h3>@service.Name</h3>
+                        @if (!string.IsNullOrWhiteSpace(service.Description))
+                        {
+                            <p>@service.Description</p>
+                        }
+                    </article>
+                }
+            </div>
+
+            <div class="services-ready">Ready to create something great?</div>
+
+            <div class="services-booking">
+                <a asp-controller="Booking" asp-action="CreateBooking">Book your session today!</a>
+            </div>
+        }
+    </div>
 </section>

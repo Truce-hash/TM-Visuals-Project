@@ -16,17 +16,20 @@ namespace TMVisualsWebApp.Controllers
         private readonly PortfolioCatalogService _portfolioCatalog;
         private readonly ServicesCatalogService _servicesCatalog;
         private readonly BookingStore _store;
+        private readonly InvoiceCatalogService _invoiceCatalog;
 
         public HomeController(
             ILogger<HomeController> logger,
             PortfolioCatalogService portfolioCatalog,
             ServicesCatalogService servicesCatalog,
-            BookingStore store)
+            BookingStore store,
+            InvoiceCatalogService invoiceCatalog)
         {
             _logger = logger;
             _portfolioCatalog = portfolioCatalog;
             _servicesCatalog = servicesCatalog;
             _store = store;
+            _invoiceCatalog = invoiceCatalog;
         }
 
         public IActionResult Index()
@@ -92,7 +95,7 @@ namespace TMVisualsWebApp.Controllers
         }
 
         [Authorize]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile(CancellationToken cancellationToken)
         {
             var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
 
@@ -102,16 +105,52 @@ namespace TMVisualsWebApp.Controllers
                 .ToList();
 
             var first = myBookings.FirstOrDefault();
+            IReadOnlyList<InvoiceDownload> invoices;
+            try
+            {
+                invoices = await _invoiceCatalog.FetchForClientAsync(email, cancellationToken);
+            }
+            catch (Exception error) when (
+                error is HttpRequestException ||
+                error is InvalidOperationException ||
+                error is JsonException)
+            {
+                _logger.LogError(error, "Could not load invoices for {Email}.", email);
+                invoices = Array.Empty<InvoiceDownload>();
+                TempData["InvoiceError"] = "Invoices are temporarily unavailable.";
+            }
 
             var user = new UserProfile
             {
                 FullName = first?.Name ?? email.Split('@')[0],
                 Email = email,
                 PhoneNumber = first?.Phone,
-                Bookings = myBookings
+                Bookings = myBookings,
+                Invoices = invoices.ToList()
             };
 
             return View(user);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> DownloadInvoice(
+            string id,
+            CancellationToken cancellationToken)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+            var invoice = (await _invoiceCatalog.FetchForClientAsync(email, cancellationToken))
+                .FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.Ordinal));
+
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            var downloadUrl = await _invoiceCatalog.CreateSignedDownloadUrlAsync(
+                invoice.FilePath,
+                invoice.Reference,
+                cancellationToken);
+            return Redirect(downloadUrl);
         }
 
         [Authorize]
@@ -195,6 +234,5 @@ namespace TMVisualsWebApp.Controllers
         }
     }
 }
-
 
 

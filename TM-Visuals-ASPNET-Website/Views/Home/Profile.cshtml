@@ -40,6 +40,41 @@
 
     <hr class="line" />
 
+    <h3>My Invoices</h3>
+    @if (!string.IsNullOrWhiteSpace(TempData["InvoiceError"]?.ToString()))
+    {
+        <p class="invoice-message">@TempData["InvoiceError"]</p>
+    }
+    <div class="invoice-list">
+        @foreach (var invoice in Model.Invoices)
+        {
+            var label = string.IsNullOrWhiteSpace(invoice.Reference)
+                ? "Invoice"
+                : invoice.Reference;
+            <div class="invoice-card">
+                <div>
+                    <strong>@label</strong>
+                    @if (invoice.CreatedAt.HasValue)
+                    {
+                        <small>Uploaded @invoice.CreatedAt.Value.ToString("dd MMMM yyyy")</small>
+                    }
+                </div>
+                <a asp-controller="Home"
+                   asp-action="DownloadInvoice"
+                   asp-route-id="@invoice.Id">
+                    <span>Download</span>
+                    <span aria-hidden="true">&darr;</span>
+                </a>
+            </div>
+        }
+        @if (!Model.Invoices.Any())
+        {
+            <p class="invoice-empty">You have no invoices yet.</p>
+        }
+    </div>
+
+    <hr class="line" />
+
     <div class="buttons">
         <a asp-controller="Home" asp-action="MyContent">My Content</a>
         <a asp-controller="Home" asp-action="EditDetails">Edit Details</a>

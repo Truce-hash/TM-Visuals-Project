@@ -9,6 +9,7 @@ namespace TMVisualsWebApp.Models
         public string Email { get; set; } = string.Empty;
         public string? PhoneNumber { get; set;}
         public List<Booking> Bookings { get; set; } = new();
+        public List<InvoiceDownload> Invoices { get; set; } = new();
 
     }
 }

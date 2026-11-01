@@ -129,42 +129,71 @@ body {
 }
 
 /* Services page */
+/* ---------- Services page ---------- */
 .services-page {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 72px 24px 90px;
+    padding: 20px 24px 90px;
 }
 
-.services-heading {
-    margin-bottom: 42px;
-    text-align: center;
+/* Hero banner with the same photo as My Work */
+.services-hero {
+    margin: 0 -24px;
+    padding: 90px 24px 40px;
+    background: linear-gradient(rgba(0, 0, 0, .45), rgba(0, 0, 0, .75)), url('/images/work-hero.png') center / cover no-repeat;
 }
 
 .services-eyebrow {
     margin-bottom: 8px;
-    color: #ffcf36;
+    color: #FFB400;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
 }
 
-.services-heading h1 {
-    color: #FFB400;
-    font-size: clamp(32px, 5vw, 52px);
-    font-weight: 800;
-    letter-spacing: -1px;
+.services-hero h1 {
+    max-width: 520px;
+    color: #fff;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 700;
+    letter-spacing: 3px;
+    line-height: 1.2;
     text-transform: uppercase;
 }
 
-.services-heading h1 span {
-    color: white;
-}
+    .services-hero h1 span {
+        display: block;
+        color: #FFB400;
+    }
 
 .services-intro {
-    max-width: 620px;
-    margin: 12px auto 0;
-    color: #bdbdbd;
+    max-width: 520px;
+    margin-top: 18px;
+    color: #d0d0d0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.services-line {
+    width: 80px;
+    height: 3px;
+    margin: 28px 0 0;
+    border: 0;
+    background: #FFB400;
+    opacity: 1;
+}
+
+/* Packages */
+.services-packages {
+    padding-top: 48px;
+}
+
+.services-title {
+    margin-bottom: 24px;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 700;
 }
 
 .services-grid {
@@ -174,54 +203,72 @@ body {
 }
 
 .service-card {
-    min-height: 180px;
-    padding: 30px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 240px;
+    padding: 24px;
     border: 1px solid rgba(255, 180, 0, 0.18);
-    background:
-        linear-gradient(145deg, rgba(255, 180, 0, 0.14), transparent 55%),
-        #171717;
+    background: #171717;
+    transition: transform .35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow .35s ease, border-color .35s ease;
 }
 
-.service-card h2 {
-    margin-bottom: 16px;
+    .service-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: #FFB400;
+        box-shadow: 0 14px 28px rgba(255, 180, 0, 0.25);
+    }
+
+    .service-card h3 {
+        margin-bottom: 12px;
+        color: #FFB400;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .service-card p,
+    .services-message {
+        color: #ddd;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+/* Gold bar and button */
+.services-ready {
+    margin-top: 36px;
+    padding: 12px 18px;
+    border: 1px solid #FFB400;
+    background: rgba(255, 180, 0, 0.12);
     color: #FFB400;
-    font-size: 22px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-align: center;
     text-transform: uppercase;
-}
-
-.service-card p,
-.services-message {
-    color: #ddd;
-    line-height: 1.6;
 }
 
 .services-booking {
-    margin-top: 34px;
+    margin-top: 40px;
     text-align: center;
 }
 
-.services-booking p {
-    margin-bottom: 14px;
-    color: #bdbdbd;
-}
+    .services-booking a {
+        display: inline-block;
+        min-width: 220px;
+        padding: 12px 24px;
+        border-radius: 6px;
+        background: #FFB400;
+        color: #111;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform .3s cubic-bezier(0.34, 1.56, 0.64, 1), background .2s;
+    }
 
-.services-booking a {
-    display: inline-block;
-    min-width: 220px;
-    padding: 12px 24px;
-    border-radius: 6px;
-    background: #e0a100;
-    color: #111;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    text-transform: uppercase;
-}
-
-.services-booking a:hover {
-    background: #ffb400;
-    color: #111;
-}
+        .services-booking a:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: #ffc933;
+            color: #111;
+        }
 
 @media (min-width: 768px) {
     .services-grid {
@@ -230,8 +277,8 @@ body {
 }
 
 @media (max-width: 767px) {
-    .services-page {
-        padding-top: 48px;
+    .services-hero {
+        padding-top: 60px;
     }
 }
 
@@ -525,6 +572,60 @@ body {
 }
 
 /* ---------- Profile page ---------- */
+.invoice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.invoice-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 18px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #151515;
+}
+
+.invoice-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.invoice-card strong {
+    overflow-wrap: anywhere;
+}
+
+.invoice-card small,
+.invoice-empty,
+.invoice-message {
+    color: #aaa;
+}
+
+.invoice-card a {
+    flex-shrink: 0;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 16px;
+    border-radius: 6px;
+    background: #E0C61F;
+    color: #111;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+@media (max-width: 576px) {
+    .invoice-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
 .content {
     max-width: 900px;
     margin: 0 auto;
