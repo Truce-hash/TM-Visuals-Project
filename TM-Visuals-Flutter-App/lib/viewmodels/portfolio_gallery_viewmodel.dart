@@ -6,12 +6,15 @@ import '../services/portfolio_gallery_service.dart';
 class PortfolioGalleryViewModel extends ChangeNotifier {
   final PortfolioGalleryService _service = PortfolioGalleryService();
 
+  static const int maxTitleLength = 100;
+
   List<PortfolioItem> items = [];
   List<PortfolioCategory> categories = [];
   String? selectedCategoryId;
 
   bool isLoading = true;
-  bool isDeleting = false;
+  bool isBusy = false; // true while saving or deleting
+  bool isAdmin = false;
   String? errorMessage;
 
   Future<void> loadGallery() async {
@@ -24,10 +27,17 @@ class PortfolioGalleryViewModel extends ChangeNotifier {
       items = await _service.fetchItems(categoryId: selectedCategoryId);
     } catch (error) {
       errorMessage = friendlyError(error);
-    } finally {
-      isLoading = false;
-      notifyListeners();
     }
+
+    try {
+      isAdmin = await _service.isAdmin();
+    } catch (error) {
+      debugPrint('Admin check failed: $error');
+      isAdmin = false;
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<void> selectCategory(String? categoryId) async {
@@ -42,20 +52,87 @@ class PortfolioGalleryViewModel extends ChangeNotifier {
     return '';
   }
 
-  Future<bool> deleteItem(PortfolioItem item) async {
-    isDeleting = true;
-    errorMessage = null;
+  void _sortItems() {
+    items.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+  }
+
+  Future<void> updateItem(
+    PortfolioItem item, {
+    required String title,
+    required String categoryId,
+    required void Function(String) onMessage,
+  }) async {
+    final id = item.id;
+    final newTitle = title.trim();
+
+    if (id == null || id.isEmpty) {
+      onMessage('No portfolio item selected.');
+      return;
+    }
+
+    if (newTitle.isEmpty) {
+      onMessage('Please enter a title.');
+      return;
+    }
+
+    if (newTitle.length > maxTitleLength) {
+      onMessage(
+        'Title is too long. Maximum length is $maxTitleLength characters.',
+      );
+      return;
+    }
+
+    if (newTitle == item.title && categoryId == item.categoryId) {
+      return; // nothing changed
+    }
+
+    isBusy = true;
+    notifyListeners();
+
+    try {
+      final updated = await _service.updateItem(
+        id: id,
+        title: newTitle,
+        categoryId: categoryId,
+      );
+
+      final index = items.indexWhere((i) => i.id == id);
+      if (index != -1) {
+        // If a category filter is active and the item moved out of it,
+        // it no longer belongs in this list.
+        if (selectedCategoryId != null &&
+            updated.categoryId != selectedCategoryId) {
+          items.removeAt(index);
+        } else {
+          items[index] = updated;
+        }
+      }
+      _sortItems();
+
+      onMessage('Portfolio item updated.');
+    } catch (error) {
+      onMessage(friendlyError(error));
+    } finally {
+      isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteItem(
+    PortfolioItem item, {
+    required void Function(String) onMessage,
+  }) async {
+    isBusy = true;
     notifyListeners();
 
     try {
       await _service.deleteItem(item);
       items.removeWhere((i) => i.id == item.id);
-      return true;
+      onMessage('Portfolio item deleted.');
     } catch (error) {
-      errorMessage = friendlyError(error);
-      return false;
+      onMessage(friendlyError(error));
     } finally {
-      isDeleting = false;
+      isBusy = false;
       notifyListeners();
     }
   }
