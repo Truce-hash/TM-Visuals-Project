@@ -43,12 +43,10 @@ builder.Services
         options.SlidingExpiration = true;
     });
 
-//added this cause i can't test the website 
-builder.Services.AddHttpClient<PortfolioCatalogService>(client =>
-{
-    client.BaseAddress = new Uri("https://YOUR-SUPABASE-URL/");   // adjust to your real endpoint
-});
+builder.Services.AddHttpClient<PortfolioCatalogService>();
 builder.Services.AddHttpClient<ServicesCatalogService>();
+builder.Services.AddHttpClient("SupabaseInvoice");
+builder.Services.AddScoped<InvoiceCatalogService>();
 
 builder.Services.AddAuthorization();
 
