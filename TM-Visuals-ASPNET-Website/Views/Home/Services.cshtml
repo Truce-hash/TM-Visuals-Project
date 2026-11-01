@@ -1,5 +1,40 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<TMVisualsWebApp.Models.ServiceItem>
 @{
+    ViewData["Title"] = "Services";
 }
+
+<section class="services-page">
+    <header class="services-heading">
+        <p class="services-eyebrow">Our Services</p>
+        <h1>What <span>We Offer</span></h1>
+        <p class="services-intro">Choose the service that best fits the moments you want us to capture.</p>
+    </header>
+
+    @if (ViewData["ServicesError"] is string servicesError)
+    {
+        <p class="services-message" role="status">@servicesError</p>
+    }
+    else if (Model.Count == 0)
+    {
+        <p class="services-message">Our services will appear here when they are available.</p>
+    }
+    else
+    {
+        <div class="services-grid">
+            @foreach (var service in Model)
+            {
+                <article class="service-card">
+                    <h2>@service.Name</h2>
+                    @if (!string.IsNullOrWhiteSpace(service.Description))
+                    {
+                        <p>@service.Description</p>
+                    }
+                </article>
+            }
+        </div>
+        <div class="services-booking">
+            <p>Ready to create your story?</p>
+            <a asp-controller="Booking" asp-action="CreateBooking">Book your session today</a>
+        </div>
+    }
+</section>

@@ -12,15 +12,18 @@ namespace TMVisualsWebApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly PortfolioCatalogService _portfolioCatalog;
+        private readonly ServicesCatalogService _servicesCatalog;
         private readonly BookingStore _store;
 
         public HomeController(
             ILogger<HomeController> logger,
             PortfolioCatalogService portfolioCatalog,
+            ServicesCatalogService servicesCatalog,
             BookingStore store)
         {
             _logger = logger;
             _portfolioCatalog = portfolioCatalog;
+            _servicesCatalog = servicesCatalog;
             _store = store;
         }
 
@@ -40,9 +43,25 @@ namespace TMVisualsWebApp.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult Services()
+        public async Task<IActionResult> Services(
+            CancellationToken cancellationToken)
         {
-            return View();
+            try
+            {
+                var services = await _servicesCatalog.FetchActiveServicesAsync(
+                    cancellationToken);
+                return View(services);
+            }
+            catch (Exception error) when (
+                error is HttpRequestException ||
+                error is InvalidOperationException ||
+                error is JsonException)
+            {
+                _logger.LogError(error, "Could not load the public services.");
+                ViewData["ServicesError"] =
+                    "Services are temporarily unavailable. Please try again later.";
+                return View(new List<ServiceItem>());
+            }
         }
 
         public async Task<IActionResult> MyWork(CancellationToken cancellationToken)

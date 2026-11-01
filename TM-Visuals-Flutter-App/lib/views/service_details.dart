@@ -55,6 +55,27 @@ class _ServiceDetailsViewState extends State<ServiceDetailsView> {
   }
 
   Future<void> _deleteService() async {
+    final confirmed = await _confirmDelete();
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await context.read<ServiceViewModel>().deleteService(_service.id);
+      if (mounted) Navigator.pop(context, true);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isDeleting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not delete service. It may be linked to existing bookings. $error',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<bool> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -74,22 +95,7 @@ class _ServiceDetailsViewState extends State<ServiceDetailsView> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
-    setState(() => _isDeleting = true);
-    try {
-      await context.read<ServiceViewModel>().deleteService(_service.id);
-      if (mounted) Navigator.pop(context, true);
-    } catch (error) {
-      if (!mounted) return;
-      setState(() => _isDeleting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Could not delete service. It may be linked to existing bookings. $error',
-          ),
-        ),
-      );
-    }
+    return confirmed == true;
   }
 
   @override
