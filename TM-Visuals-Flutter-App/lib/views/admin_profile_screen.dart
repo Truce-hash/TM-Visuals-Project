@@ -381,11 +381,26 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 ],
               ),
             )
-          : ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: [
-                // ---------- User Card ----------
-                Container(
+          
+: ListView(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    children: [
+      // ---------- Page Title ----------
+      const Padding(
+        padding: EdgeInsets.only(bottom: 16),
+        child: Text(
+          'PROFILE',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+
+      // ---------- User Card ----------
+      Container(
+
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: cardBgColor,

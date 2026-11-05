@@ -39,9 +39,20 @@ class _BookingsScreenState extends State<BookingsScreen> {
       appBar: const AdminTopNav(),
       bottomNavigationBar: const AdminBottomNav(currentIndex: 1),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Padding(
+      padding: EdgeInsets.fromLTRB(16, 18, 16, 12),
+      child: Text(
+        'BOOKINGS',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+    Expanded(
             child: SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),

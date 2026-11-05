@@ -14,8 +14,22 @@ class AdminMoreScreen extends StatelessWidget {
     body: AdminContent(
       child: ListView(
         padding: const EdgeInsets.all(20),
-        children: [
-          for (final item in const [
+        
+children: [
+  const Padding(
+    padding: EdgeInsets.only(bottom: 16),
+    child: Text(
+      'MORE OPTIONS',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ),
+
+  for (final item in const [
+
             ('/add-invoice', 'Upload invoice', Icons.upload_file),
             //('/invoices', 'Invoices', Icons.receipt_long),
             ('/portfolio-content', 'Upload Portfolio', Icons.photo_library_outlined),
