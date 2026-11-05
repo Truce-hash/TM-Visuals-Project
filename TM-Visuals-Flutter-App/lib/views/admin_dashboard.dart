@@ -62,10 +62,40 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
               ),
-              const Divider(color: AdminDashboard.accentColor),
-              const Spacer(),
-              const Divider(color: Colors.white24),
-              _menuItem(Icons.logout, 'Log Out'),
+              
+const Divider(color: AdminDashboard.accentColor),
+
+// Drawer navigation items
+for (final item in const [
+  ('/', 'Home', Icons.home_outlined),
+  ('/bookings', 'Bookings', Icons.event_note_outlined),
+  ('/calendar', 'Calendar', Icons.calendar_today_outlined),
+  ('/admin-profile', 'Profile', Icons.account_circle_outlined),
+  ('/more', 'More', Icons.menu),
+])
+  ListTile(
+    leading: Icon(item.$3, color: AdminDashboard.accentColor),
+    title: Text(
+      item.$2,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    onTap: () {
+      Navigator.of(context).pop();
+
+      if (item.$1 != '/') {
+        Navigator.of(context).pushReplacementNamed(item.$1);
+      }
+    },
+  ),
+
+const Spacer(),
+const Divider(color: Colors.white24),
+_menuItem(Icons.logout, 'Log Out'),
+
               const SizedBox(height: 12),
             ],
           ),
