@@ -24,6 +24,7 @@
 ## 📖 Table of Contents
 
 - [Overview](#-overview)
+- [Local setup and launch](SETUP.md)
 <!--- [Screenshots](#-screenshots)-->
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
@@ -55,6 +56,12 @@ It addresses real business needs around:
 
 > [!NOTE]
 > This repository contains **both** the ASP.NET website and the Flutter mobile app. Both connect to the same **Supabase** backend for authentication and storage.
+
+## Local setup and launch
+
+Follow [SETUP.md](SETUP.md) once to install the tools and configure Supabase. Then double-click **Start-TM-Visuals.cmd** to open the website and Flutter web preview. Double-click **Stop-TM-Visuals.cmd** to stop the servers.
+
+The launcher uses one ignored local configuration file for both apps. It supports launching either app separately, records startup logs, and does not run database migrations.
 
 <!--## 📸 Screenshots
 

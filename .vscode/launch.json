@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TM Visuals Flutter (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/TM-Visuals-Flutter-App",
+      "program": "${workspaceFolder}/TM-Visuals-Flutter-App/lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define-from-file=config/supabase.local.json"
+      ]
+    }
+  ]
+}

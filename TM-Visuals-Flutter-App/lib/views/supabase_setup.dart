@@ -23,7 +23,7 @@ class SupabaseSetupScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const SelectableText(
-            'Copy config/supabase.example.json to config.json and set the public publishable key. Start with:\nflutter run --dart-define-from-file=config.json\n\nIn VS Code, choose TM Visuals Flutter (local Supabase config). Stop and restart after changing configuration.',
+            'Copy config/supabase.example.json to config/supabase.local.json and set the project URL and public publishable key. Start with:\nflutter run --dart-define-from-file=config/supabase.local.json\n\nOr double-click Start-TM-Visuals.cmd in the repository root. In VS Code, choose TM Visuals Flutter (Chrome). Stop and restart after changing configuration.',
           ),
         ],
       ),
