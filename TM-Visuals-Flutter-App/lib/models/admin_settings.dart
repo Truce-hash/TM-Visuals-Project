@@ -1,8 +1,15 @@
 class AdminSettings {
-  String password;
+  String currentPassword;
+  String newPassword;
+  String confirmPassword;
   String email;
   String phone;
 
-  AdminSettings(
-      {required this.password, required this.email, required this.phone});
+  AdminSettings({
+    this.currentPassword = '',
+    this.newPassword = '',
+    this.confirmPassword = '',
+    required this.email,
+    required this.phone,
+  });
 }

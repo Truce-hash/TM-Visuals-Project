@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../widgets/admin_page_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,7 +30,10 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
     vm = widget.viewModel ?? AddInvoiceViewModel(service: widget.service);
     vm.prepareForBooking(widget.initialBookingId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) vm.loadBookings();
+      if (mounted) {
+        vm.loadBookings();
+        vm.loadInvoices();
+      }
     });
   }
 
@@ -198,6 +202,70 @@ class _AddInvoiceBody extends StatelessWidget {
                   child: const Text('Cancel'),
                 ),
               ],
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Uploaded invoices',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Refresh invoices',
+                    onPressed: vm.loadingInvoices ? null : vm.loadInvoices,
+                    icon: const Icon(Icons.refresh),
+                  ),
+                ],
+              ),
+              if (vm.loadingInvoices)
+                const Center(child: CircularProgressIndicator())
+              else if (vm.invoiceListError != null)
+                AdminErrorNotice(
+                  error: vm.invoiceListError!,
+                  retry: vm.loadInvoices,
+                )
+              else if (vm.invoices.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text('No invoices have been uploaded yet.'),
+                )
+              else
+                for (final invoice in vm.invoices)
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.picture_as_pdf_outlined,
+                        color: adminGold,
+                      ),
+                      title: Text(invoice.reference),
+                      subtitle: Text(
+                        invoice.createdAt == null
+                            ? 'Booking ${invoice.bookingId}'
+                            : 'Uploaded ${DateFormat.yMMMd().format(invoice.createdAt!.toLocal())}',
+                      ),
+                      trailing: const Icon(Icons.open_in_new),
+                      onTap: () async {
+                        try {
+                          final uri = await vm.service.signedInvoiceUrl(
+                            invoice.filePath,
+                          );
+                          if (!await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          )) {
+                            throw StateError('Could not open the invoice PDF.');
+                          }
+                        } catch (error) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(adminError(error))),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ),
             ],
           ),
         ),

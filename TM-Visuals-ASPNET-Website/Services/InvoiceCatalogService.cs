@@ -35,9 +35,10 @@ namespace TMVisualsWebApp.Services
 
             var client = _httpClientFactory.CreateClient("SupabaseInvoice");
             var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                $"{url}/rest/v1/invoice?select=invoice_id,reference,file_path,created_at,booking:booking_id(booking_id,client:client_id(user:user_id(email)))");
+                HttpMethod.Post,
+                $"{url}/rest/v1/rpc/tmv_get_my_invoices");
             AddSupabaseHeaders(request, key, accessToken);
+            request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             using var response = await client.SendAsync(request, cancellationToken);
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -51,7 +52,7 @@ namespace TMVisualsWebApp.Services
             var invoices = new List<InvoiceDownload>();
             foreach (var row in document.RootElement.EnumerateArray())
             {
-                var clientEmail = FindNestedEmail(row);
+                var clientEmail = GetString(row, "client_email");
                 if (!string.Equals(clientEmail, email, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -152,39 +153,6 @@ namespace TMVisualsWebApp.Services
             url = _configuration["Supabase:Url"]?.TrimEnd('/') ?? string.Empty;
             key = _configuration["Supabase:Key"]?.Trim() ?? string.Empty;
             return !string.IsNullOrWhiteSpace(url) && !string.IsNullOrWhiteSpace(key);
-        }
-
-        private static string FindNestedEmail(JsonElement element)
-        {
-            if (element.ValueKind == JsonValueKind.Object)
-            {
-                foreach (var property in element.EnumerateObject())
-                {
-                    if (property.NameEquals("email"))
-                    {
-                        return property.Value.GetString() ?? string.Empty;
-                    }
-
-                    var nested = FindNestedEmail(property.Value);
-                    if (!string.IsNullOrWhiteSpace(nested))
-                    {
-                        return nested;
-                    }
-                }
-            }
-            else if (element.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var item in element.EnumerateArray())
-                {
-                    var nested = FindNestedEmail(item);
-                    if (!string.IsNullOrWhiteSpace(nested))
-                    {
-                        return nested;
-                    }
-                }
-            }
-
-            return string.Empty;
         }
 
         private static string GetString(JsonElement element, string propertyName)

@@ -15,20 +15,21 @@ public sealed class BookingAvailabilityService(SupabaseApiClient api)
     {
         var first = new DateTime(year, month, 1);
         var last = first.AddMonths(1).AddDays(-1);
-        var rows = await api.RpcAsync("get_calendar_availability", new {
-            p_start_date = first.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),
-            p_end_date = last.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),
+        var result = await api.RpcAsync("tmv_get_month_availability", new {
+            p_year = year,
+            p_month = month,
         }, cancellationToken: cancellationToken);
         var days = new Dictionary<string, DayAvailability>();
-        foreach (var row in rows.EnumerateArray())
+        var dayRows = result.GetProperty("days");
+        foreach (var row in dayRows.EnumerateObject())
         {
-            var key = row.GetProperty("slot_date").GetString()!;
-            var status = row.GetProperty("status").GetString()!;
+            var key = row.Name;
+            var status = row.Value.GetProperty("status").GetString()!;
             if (status is not ("available" or "partial" or "full" or "blocked"))
                 throw new JsonException("Unexpected calendar state.");
             days.Add(key,new DayAvailability(status,
-                row.GetProperty("busy").Deserialize<List<TimeWindow>>(Json)!,
-                row.GetProperty("free").Deserialize<List<TimeWindow>>(Json)!));
+                row.Value.GetProperty("busy").Deserialize<List<TimeWindow>>(Json)!,
+                row.Value.GetProperty("free").Deserialize<List<TimeWindow>>(Json)!));
         }
         if (days.Count != last.Day || Enumerable.Range(1,last.Day).Any(day =>
             !days.ContainsKey(new DateTime(year,month,day).ToString("yyyy-MM-dd",CultureInfo.InvariantCulture))))

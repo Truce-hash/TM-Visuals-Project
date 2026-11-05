@@ -3,120 +3,134 @@ import '../widgets/admin_page_app_bar.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/admin_settings_viewmodel.dart';
 
-class AdminSettingsScreen extends StatelessWidget {
+class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
 
   @override
+  State<AdminSettingsScreen> createState() => _AdminSettingsScreenState();
+}
+
+class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AdminSettingsViewModel>().load();
+    });
+  }
+
+  Future<void> _save(AdminSettingsViewModel vm) async {
+    final saved = await vm.save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            saved
+                ? 'Settings saved. Check your email if an address change requires confirmation.'
+                : vm.error ?? 'Settings could not be saved.',
+          ),
+        ),
+      );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var vm = context.watch<AdminSettingsViewModel>();
+    final vm = context.watch<AdminSettingsViewModel>();
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: const AdminPageAppBar(title: 'Settings'),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          Container(
-            height: 300,
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[850],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
+      body: vm.loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: EdgeInsets.all(16),
               children: [
-                TextField(
-                  obscureText: vm.hidePassword,
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (value) {
-                    vm.settings.password = value;
-                  },
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 130,
-                      child: Text('Change Password:',
-                          style: TextStyle(color: Colors.white, fontSize: 13)),
-                    ),
-                    hintText: 'Password...',
-                    hintStyle: TextStyle(color: Colors.white38),
-                    suffixIcon: IconButton(
-                      icon: Icon(
+                if (vm.error != null && vm.settings.email.isEmpty)
+                  Text(
+                    vm.error!,
+                    style: const TextStyle(color: Colors.redAccent),
+                  )
+                else ...[
+                  TextFormField(
+                    enabled: !vm.saving,
+                    initialValue: vm.settings.email,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    onChanged: (value) => vm.settings.email = value,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    enabled: !vm.saving,
+                    initialValue: vm.settings.phone,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(labelText: 'Phone'),
+                    onChanged: (value) => vm.settings.phone = value,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Change password',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    enabled: !vm.saving,
+                    obscureText: vm.hidePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Current password',
+                      suffixIcon: IconButton(
+                        onPressed: vm.toggleHidePassword,
+                        icon: Icon(
                           vm.hidePassword
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: Colors.white70),
-                      onPressed: () {
-                        vm.toggleHidePassword();
-                      },
+                        ),
+                      ),
                     ),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.amber)),
+                    onChanged: (value) => vm.settings.currentPassword = value,
                   ),
-                ),
-                TextField(
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (value) {
-                    vm.settings.email = value;
-                  },
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 130,
-                      child: Text('Change Email:',
-                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    enabled: !vm.saving,
+                    obscureText: vm.hidePassword,
+                    decoration: const InputDecoration(
+                      labelText: 'New password',
+                      helperText: 'Use at least 8 characters.',
                     ),
-                    hintText: 'Email...',
-                    hintStyle: TextStyle(color: Colors.white38),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.amber)),
+                    onChanged: (value) => vm.settings.newPassword = value,
                   ),
-                ),
-                TextField(
-                  style: TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (value) {
-                    vm.settings.phone = value;
-                  },
-                  decoration: InputDecoration(
-                    icon: SizedBox(
-                      width: 130,
-                      child: Text('Change Phone:',
-                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    enabled: !vm.saving,
+                    obscureText: vm.hidePassword,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirm new password',
                     ),
-                    hintText: 'Phone...',
-                    hintStyle: TextStyle(color: Colors.white38),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24)),
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.amber)),
+                    onChanged: (value) => vm.settings.confirmPassword = value,
                   ),
-                ),
+                  if (vm.error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Text(
+                        vm.error!,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: vm.saving ? null : () => _save(vm),
+                    child: vm.saving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Save settings'),
+                  ),
+                ],
               ],
             ),
-          ),
-          SizedBox(height: 24),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                vm.save();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Settings saved')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text('SAVE',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

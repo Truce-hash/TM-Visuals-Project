@@ -9,13 +9,16 @@ class AddInvoiceViewModel extends ChangeNotifier {
       bookingId = initialBookingId;
   final InvoiceDataSource service;
   List<InvoiceBooking> bookings = [];
+  List<AddInvoiceModel> invoices = [];
   String? bookingId, fileName, errorMessage, loadError;
+  String? invoiceListError;
   String reference = '';
   Uint8List? _bytes;
   String? _invoiceId;
   AddInvoiceModel? invoice;
   bool isLoading = false,
       loadingBookings = true,
+      loadingInvoices = true,
       locked = false,
       _uncertain = false,
       _disposed = false;
@@ -35,6 +38,23 @@ class AddInvoiceViewModel extends ChangeNotifier {
     } finally {
       if (!_disposed) {
         loadingBookings = false;
+        _changed();
+      }
+    }
+  }
+
+  Future<void> loadInvoices() async {
+    loadingInvoices = true;
+    invoiceListError = null;
+    _changed();
+    try {
+      final result = await service.loadInvoices();
+      if (!_disposed) invoices = result;
+    } catch (e) {
+      if (!_disposed) invoiceListError = e.toString();
+    } finally {
+      if (!_disposed) {
+        loadingInvoices = false;
         _changed();
       }
     }
@@ -112,7 +132,10 @@ class AddInvoiceViewModel extends ChangeNotifier {
         invoiceId: _invoiceId!,
         uncertainBefore: _uncertain,
       );
-      if (!_disposed) invoice = result;
+      if (!_disposed) {
+        invoice = result;
+        await loadInvoices();
+      }
       return true;
     } catch (e) {
       _uncertain = true;

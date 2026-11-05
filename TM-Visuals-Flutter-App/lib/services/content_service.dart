@@ -7,47 +7,45 @@ class ContentService {
 
   final SupabaseClient _client;
 
-  /// client_content.access_status is NOT NULL. Use the same words here and
-  /// in any client-side screen that filters on it.
-  static const String accessActive = 'active';
-
   static const String _contentColumns =
       'content_id,booking_id,title,delivery_link,uploaded_at';
+
+  Future<String> _clientName(String clientId) async {
+    final row = await _client
+        .from('tmv_client')
+        .select('tmv_user(full_name)')
+        .eq('client_id', clientId)
+        .single();
+    final user = row['tmv_user'] as Map?;
+    return user?['full_name']?.toString() ?? '';
+  }
 
   Future<List<ContentBookingOption>> fetchBookingsForClient(
     String clientId,
   ) async {
+    final clientName = await _clientName(clientId);
     final rows = await _client
-        .from('booking')
-        .select(
-          'booking_id,event_type,booking_status,client:client_id(user:user_id(full_name))',
-        )
+        .from('tmv_booking')
+        .select('booking_id,event_type,booking_status')
         .eq('client_id', clientId)
         .order('created_at', ascending: false);
 
     return rows.map((row) {
       final map = Map<String, dynamic>.from(row);
-      final client = map['client'] is Map
-          ? Map<String, dynamic>.from(map['client'])
-          : <String, dynamic>{};
-      final user = client['user'] is Map
-          ? Map<String, dynamic>.from(client['user'])
-          : <String, dynamic>{};
       return ContentBookingOption(
         bookingId: (map['booking_id'] ?? '').toString(),
         eventType: (map['event_type'] ?? 'Booking').toString(),
         status: (map['booking_status'] ?? '').toString(),
-        clientName: (user['full_name'] ?? '').toString(),
+        clientName: clientName,
       );
     }).toList();
   }
 
   Future<List<ContentModel>> fetchForClient(String clientId) async {
+    final clientName = await _clientName(clientId);
     final bookings = await _client
-        .from('booking')
-        .select(
-          'booking_id,event_type,client:client_id(user:user_id(full_name))',
-        )
+        .from('tmv_booking')
+        .select('booking_id,event_type')
         .eq('client_id', clientId);
 
     if (bookings.isEmpty) return [];
@@ -56,20 +54,14 @@ class ContentService {
     for (final booking in bookings) {
       final row = Map<String, dynamic>.from(booking);
       final bookingId = (row['booking_id'] ?? '').toString();
-      final client = row['client'] is Map
-          ? Map<String, dynamic>.from(row['client'])
-          : <String, dynamic>{};
-      final user = client['user'] is Map
-          ? Map<String, dynamic>.from(client['user'])
-          : <String, dynamic>{};
       bookingDetails[bookingId] = {
         'event_type': (row['event_type'] ?? '').toString(),
-        'client_name': (user['full_name'] ?? '').toString(),
+        'client_name': clientName,
       };
     }
 
     final rows = await _client
-        .from('client_content')
+        .from('tmv_client_content')
         .select(_contentColumns)
         .inFilter('booking_id', bookingDetails.keys.toList())
         .order('uploaded_at', ascending: false);
@@ -93,12 +85,11 @@ class ContentService {
   }) async {
     _validateLink(deliveryLink);
     final row = await _client
-        .from('client_content')
+        .from('tmv_client_content')
         .insert({
           'booking_id': bookingId,
           'title': title.trim(),
           'delivery_link': deliveryLink.trim(),
-          'access_status': accessActive,
         })
         .select(_contentColumns)
         .single();
@@ -112,7 +103,7 @@ class ContentService {
   }) async {
     _validateLink(deliveryLink);
     final rows = await _client
-        .from('client_content')
+        .from('tmv_client_content')
         .update({'title': title.trim(), 'delivery_link': deliveryLink.trim()})
         .eq('content_id', content.contentId)
         .select(_contentColumns);
@@ -133,7 +124,7 @@ class ContentService {
 
   Future<void> deleteContent(String contentId) async {
     final deleted = await _client
-        .from('client_content')
+        .from('tmv_client_content')
         .delete()
         .eq('content_id', contentId)
         .select('content_id');

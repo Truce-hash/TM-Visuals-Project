@@ -5,8 +5,8 @@ import '../models/portfolio_model.dart';
 class PortfolioService {
   final SupabaseClient supabase = Supabase.instance.client;
 
-  static const String categoryTable = 'portfolio_category';
-  static const String itemTable = 'portfolio_item';
+  static const String categoryTable = 'tmv_portfolio_category';
+  static const String itemTable = 'tmv_portfolio_item';
   static const String bucket = 'portfolio';
 
   /// Returns the admin_id of the signed-in user, or throws a
@@ -19,7 +19,7 @@ class PortfolioService {
     }
 
     final admin = await supabase
-        .from('admin')
+        .from('tmv_admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -49,11 +49,11 @@ class PortfolioService {
 
   /// Inserts a new category
   Future<Map<String, dynamic>> insertCategory(String name) async {
-    await requireAdminId();
+    final adminId = await requireAdminId();
 
     final inserted = await supabase
         .from(categoryTable)
-        .insert({'category_name': name})
+        .insert({'admin_id': adminId, 'category_name': name})
         .select('category_id, category_name')
         .single();
 

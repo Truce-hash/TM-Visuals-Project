@@ -19,6 +19,8 @@
           id="bookingForm"
           class="booking-form">
 
+        <div asp-validation-summary="All" class="field-validation-error"></div>
+
 
 
         <div class="field full-field">
@@ -228,13 +230,13 @@
         <div class="form-grid">
             <div class="field">
                 <label asp-for="StartTime"></label>
-                <input asp-for="StartTime" type="time" step="60" list="bookingTimeOptions" min="06:00" max="21:00" class="booking-input" />
+                <input asp-for="StartTime" type="time" step="3600" list="bookingTimeOptions" min="06:00" max="21:00" class="booking-input" />
                 <span asp-validation-for="StartTime" class="field-validation-error"></span>
             </div>
 
             <div class="field">
                 <label asp-for="FinishTime"></label>
-                <input asp-for="FinishTime" type="time" step="60" list="bookingTimeOptions" min="07:00" max="22:00" class="booking-input" />
+                <input asp-for="FinishTime" type="time" step="3600" list="bookingTimeOptions" min="07:00" max="22:00" class="booking-input" />
                 <datalist id="bookingTimeOptions"></datalist>
                 <span asp-validation-for="FinishTime" class="field-validation-error"></span>
             </div>
@@ -463,6 +465,12 @@
 
                 if (!selectedDate || !start || !finish) {
                     return true;
+                }
+
+                if (!start.endsWith(":00") || !finish.endsWith(":00")) {
+                    timeConflict.textContent =
+                        "This calendar accepts whole-hour start and finish times.";
+                    return false;
                 }
 
                 if (finish <= start) {

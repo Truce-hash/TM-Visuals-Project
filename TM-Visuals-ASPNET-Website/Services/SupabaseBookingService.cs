@@ -10,25 +10,34 @@ public sealed class SupabaseBookingService(SupabaseApiClient api)
     {
         if (booking.Date == null || booking.StartTime == null || booking.FinishTime == null)
             throw new ArgumentException("Choose a date and session times.");
-        var result = await api.RpcAsync("create_booking_for_period", new {
-            p_day = booking.Date.Value.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),
-            p_start = booking.StartTime.Value.ToString(@"hh\:mm\:ss",CultureInfo.InvariantCulture),
-            p_end = booking.FinishTime.Value.ToString(@"hh\:mm\:ss",CultureInfo.InvariantCulture),
-            p_service_name = booking.Service, p_event_type = booking.EventType,
-            p_budget = booking.Budget, p_requirements = booking.Requirements,
-            p_number_of_people = booking.NumberOfPeople, p_location = booking.Location,
-            p_terms_accepted = booking.AcceptTerms, p_full_name = booking.Name, p_phone = booking.Phone,
-            p_latitude = booking.Latitude, p_longitude = booking.Longitude,
+        await api.RpcAsync("tmv_update_my_profile", new {
+            p_full_name = booking.Name,
+            p_phone = booking.Phone,
+        }, authenticated: true, cancellationToken: cancellationToken);
+        var result = await api.RpcAsync("tmv_create_public_booking", new {
+            p_name = booking.Name,
+            p_phone = booking.Phone,
+            p_email = booking.Email,
+            p_service = booking.Service,
+            p_event_type = booking.EventType,
+            p_date = booking.Date.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            p_start_time = booking.StartTime.Value.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture),
+            p_finish_time = booking.FinishTime.Value.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture),
+            p_location = booking.Location,
+            p_number_of_people = booking.NumberOfPeople,
+            p_budget = booking.Budget,
+            p_requirements = booking.Requirements,
+            p_accept_terms = booking.AcceptTerms,
         }, authenticated: true, cancellationToken: cancellationToken);
         return result.GetGuid();
     }
 
     public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default) =>
-        _ = await api.RpcAsync("cancel_my_booking", new { p_booking_id = id }, true, cancellationToken);
+        _ = await api.RpcAsync("tmv_cancel_my_booking", new { p_booking_id = id }, true, cancellationToken);
 
     public async Task<List<Booking>> FetchMineAsync(Guid? id = null, CancellationToken cancellationToken = default)
     {
-        var rows = await api.RpcAsync("get_my_calendar_bookings", new { p_booking_id = id }, true, cancellationToken);
+        var rows = await api.RpcAsync("tmv_get_my_calendar_bookings", new { p_booking_id = id }, true, cancellationToken);
         return rows.EnumerateArray().Select(ReadBooking).ToList();
     }
 

@@ -34,7 +34,7 @@ class InvoiceListViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final rows = await _client
-          .from('invoice')
+          .from('tmv_invoice')
           .select('invoice_id,reference,file_path,created_at')
           .order('created_at', ascending: false);
       allInvoices = rows.map((row) {

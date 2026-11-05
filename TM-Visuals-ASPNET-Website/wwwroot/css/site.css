@@ -766,8 +766,9 @@ body {
     box-sizing: border-box;
     display: grid;
     min-height: calc(100vh - 120px);
+    min-height: calc(100dvh - 120px);
     place-items: center;
-    padding: 28px 16px 48px;
+    padding: 32px 16px 48px;
 }
 
 
@@ -775,8 +776,8 @@ body {
 .auth-card {
     position: relative;
     box-sizing: border-box;
-    width: min(100%, 600px);
-    padding: 30px 40px;
+    width: min(100%, 460px);
+    padding: clamp(24px, 5vw, 36px);
     background: #050505;
     color: #fff;
     border: 1px solid rgba(255, 180, 0, 0.6);
@@ -1035,12 +1036,12 @@ body {
 
 @media (max-width: 480px) {
     .auth-page {
-        padding: 16px 12px;
+        padding: 20px 12px 32px;
     }
 
     .auth-card {
         min-height: 0;
-        padding: 18px 24px 28px;
+        padding: 24px 20px;
     }
 }
 

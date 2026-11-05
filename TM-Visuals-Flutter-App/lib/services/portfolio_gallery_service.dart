@@ -4,7 +4,7 @@ import '../models/portfolio_model.dart';
 class PortfolioGalleryService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  static const String _itemTable = 'portfolio_item';
+  static const String _itemTable = 'tmv_portfolio_item';
   static const String _bucket = 'portfolio';
   static const String _itemColumns =
       'media_id, admin_id, category_id, title, media_location, media_type';
@@ -15,7 +15,7 @@ class PortfolioGalleryService {
     if (user == null) return false;
 
     final admin = await _supabase
-        .from('admin')
+        .from('tmv_admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -25,7 +25,7 @@ class PortfolioGalleryService {
 
   Future<List<PortfolioCategory>> fetchCategories() async {
     final response = await _supabase
-        .from('portfolio_category')
+        .from('tmv_portfolio_category')
         .select('category_id, category_name')
         .order('category_name');
 

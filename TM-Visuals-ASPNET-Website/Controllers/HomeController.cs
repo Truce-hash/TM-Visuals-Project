@@ -270,7 +270,24 @@ namespace TMVisualsWebApp.Controllers
             }
 
             var accessToken = await _api.AccessTokenAsync(cancellationToken);
-            await _data.UpdateMyProfileAsync(accessToken, model.FullName.Trim(), model.PhoneNumber?.Trim(), cancellationToken);
+            try
+            {
+                await _data.UpdateMyProfileAsync(
+                    accessToken,
+                    model.FullName.Trim(),
+                    model.PhoneNumber?.Trim(),
+                    cancellationToken);
+            }
+            catch (Exception error) when (
+                error is SupabaseDataException or HttpRequestException or
+                    JsonException or InvalidOperationException)
+            {
+                _logger.LogError(error, "Could not update the signed-in user's profile.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Your profile could not be saved. Please try again or contact support.");
+                return View(model);
+            }
 
             TempData["Message"] = "Details updated.";
             return RedirectToAction("Profile");
@@ -296,5 +313,4 @@ namespace TMVisualsWebApp.Controllers
 
     }
 }
-
 

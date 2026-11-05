@@ -16,11 +16,13 @@ import '../views/service_list_view.dart';
 import '../views/clients.dart';
 import '../views/portfolio_gallery.dart';
 import '../views/admin_dashboard.dart';
+import '../views/admin_notifications_screen.dart';
 
 class RouteManager {
   static const calendar = '/calendar',
       bookings = '/bookings',
       profile = '/admin-profile',
+      notifications = '/notifications',
       more = '/more',
       portfolioContent = '/portfolio-content',
       clients = '/clients',
@@ -41,6 +43,7 @@ class RouteManager {
       ),
       bookings => (_) => const BookingsScreen(),
       profile => (_) => AdminProfileScreen(),
+      notifications => (_) => const AdminNotificationsScreen(),
       more => (_) => const AdminMoreScreen(),
       portfolioContent => (_) => const PortfolioContentScreen(),
       clients => (_) => const ClientsView(),
