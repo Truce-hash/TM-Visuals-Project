@@ -36,10 +36,10 @@ namespace TMVisualsWebApp.Services
             }
 
             var selection = Uri.EscapeDataString(
-                "title,media_location,media_type,category:portfolio_category(category_name)");
+                "title,media_location,media_type,category:tmv_portfolio_category(category_name)");
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"{supabaseUrl}/rest/v1/portfolio_item?select={selection}");
+                $"{supabaseUrl}/rest/v1/tmv_portfolio_item?select={selection}");
             request.Headers.TryAddWithoutValidation("apikey", publicKey);
             request.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", publicKey);

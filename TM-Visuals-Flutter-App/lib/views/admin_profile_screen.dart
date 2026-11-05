@@ -319,6 +319,7 @@ class AdminProfileScreen extends StatelessWidget {
 
 import 'package:flutter/material.dart';
 import 'package:photography_flutter_application/views/admin_settings_screen.dart';
+import 'package:photography_flutter_application/views/admin_notifications_screen.dart';
 import 'package:photography_flutter_application/views/admin_sign_in.dart';
 import 'package:photography_flutter_application/views/service_list_view.dart';
 import 'package:provider/provider.dart';
@@ -326,6 +327,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../viewmodels/admin_profile_viewmodel.dart';
 import '../widgets/admin_bottom_nav.dart';
 import '../widgets/admin_top_nav.dart';
+import '../widgets/admin_widgets.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -598,13 +600,16 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                           },
                         ),
                         const Divider(color: Colors.black54, height: 1),
-                        _buildMenuSwitchRow(
+                        _buildMenuRow(
                           Icons.notifications_none,
-                          'New booking alerts',
-                          vm.bookingAlerts,
-                          (val) {
-                            vm.toggleBookingAlerts(val);
-                          },
+                          'Notifications',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const AdminNotificationsScreen(),
+                            ),
+                          ),
                         ),
                         const Divider(color: Colors.black54, height: 1),
                         _buildMenuRow(
@@ -628,6 +633,28 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 // ---------- Logout Action Row ----------
                 GestureDetector(
                   onTap: () async {
+                    final shouldSignOut = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Sign out?'),
+                        content: const Text(
+                          'Are you sure you want to sign out?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(true),
+                            child: const Text('Sign out'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (shouldSignOut != true) return;
                     try {
                       await Supabase.instance.client.auth.signOut();
 
@@ -743,36 +770,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildMenuSwitchRow(
-    IconData icon,
-    String title,
-    bool value,
-    ValueChanged onChanged,
-  ) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: Colors.amber, size: 20),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
-      ),
-      trailing: Switch(
-        value: value,
-        // ignore: deprecated_member_use
-        activeColor: Colors.amber,
-        activeTrackColor: Colors.amber.withValues(alpha: 0.3),
-        inactiveTrackColor: Colors.grey,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
   void _showEditBottomSheet(
     BuildContext context,
     AdminProfileViewModel vm,
@@ -837,10 +834,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                         ),
                       );
                     } else {
+                      final error = vm.profileError;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
-                            'Failed to update profile. Checking network/RLS policy.',
+                            'Failed to update profile: ${error == null ? 'Unknown error' : adminError(error)}',
                           ),
                         ),
                       );

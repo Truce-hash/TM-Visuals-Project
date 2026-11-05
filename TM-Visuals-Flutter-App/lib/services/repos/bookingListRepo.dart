@@ -1,35 +1,26 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:photography_flutter_application/models/booking_list_model.dart';
 
 /// Table names live here so a rename in the database is a one-line change.
 class BookingTable {
-  static const booking = 'booking';
+  static const booking = 'tmv_booking';
 }
 
 class BookingRepository {
   final SupabaseClient _db = Supabase.instance.client;
 
-  // One round trip: the booking, who asked, what for, and which slots.
-  // booking has no service_id column: services are linked through
-  // booking_service, so the select string lives in the model.
-  static const String _select = BookingList.selectQuery;
-
   Future<List<BookingList>> fetchAll({int limit = 500}) async {
-    final rows = await _db
-        .from(BookingTable.booking)
-        .select(_select)
-        .order('created_at', ascending: false)
-        .limit(limit);
-    return rows.map(BookingList.fromJson).toList();
+    final response = await _db.rpc('tmv_admin_get_bookings');
+    return parseBookingRows(response, limit: limit);
   }
 
   Future<BookingList> fetchOne(String id) async {
-    final row = await _db
-        .from(BookingTable.booking)
-        .select(_select)
-        .eq('booking_id', id)
-        .single();
-    return BookingList.fromJson(row);
+    final bookings = await fetchAll();
+    return bookings.firstWhere(
+      (booking) => booking.id == id,
+      orElse: () => throw StateError('Booking not found.'),
+    );
   }
 
   /// One database call changes the booking status, its slots and creates the client
@@ -41,7 +32,7 @@ class BookingRepository {
     String? reason,
   }) async {
     await _db.rpc(
-      'admin_set_booking_status',
+      'tmv_admin_set_booking_status',
       params: {
         'p_booking_id': bookingId,
         'p_new_status': target.dbValue,
@@ -65,4 +56,20 @@ class BookingRepository {
 
   Future<void> stopListening(RealtimeChannel channel) =>
       _db.removeChannel(channel);
+}
+
+@visibleForTesting
+List<BookingList> parseBookingRows(Object? response, {int limit = 500}) {
+  if (response is! List) {
+    throw const FormatException('The bookings response was not a list.');
+  }
+
+  final bookings = <BookingList>[];
+  for (final row in response) {
+    if (row is! Map) {
+      throw const FormatException('A booking response row was not an object.');
+    }
+    bookings.add(BookingList.fromJson(Map<String, dynamic>.from(row)));
+  }
+  return bookings.take(limit).toList(growable: false);
 }

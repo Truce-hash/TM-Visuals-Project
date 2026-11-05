@@ -16,7 +16,7 @@ class ServiceService {
     if (user == null) throw StateError('Please log in first.');
 
     final admin = await _client
-        .from('admin')
+        .from('tmv_admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -29,7 +29,7 @@ class ServiceService {
 
   Future<List<ServicesListModel>> fetchServices() async {
     final rows = await _client
-        .from('service')
+        .from('tmv_service')
         .select(_columns)
         .order('created_at', ascending: false);
     return rows
@@ -46,7 +46,7 @@ class ServiceService {
     final adminId = await _requireAdminId();
 
     final row = await _client
-        .from('service')
+        .from('tmv_service')
         .insert({
           'admin_id': adminId,
           'service_name': serviceName.trim(),
@@ -60,7 +60,7 @@ class ServiceService {
 
   Future<ServicesListModel> updateService(ServicesListModel service) async {
     final rows = await _client
-        .from('service')
+        .from('tmv_service')
         .update(service.toMap())
         .eq('service_id', service.id)
         .select(_columns);
@@ -76,7 +76,7 @@ class ServiceService {
 
   Future<void> deleteService(String serviceId) async {
     final deleted = await _client
-        .from('service')
+        .from('tmv_service')
         .delete()
         .eq('service_id', serviceId)
         .select('service_id');

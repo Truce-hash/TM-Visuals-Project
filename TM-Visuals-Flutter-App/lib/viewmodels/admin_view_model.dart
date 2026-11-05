@@ -57,14 +57,7 @@ class AdminDashboardViewModel extends ChangeNotifier {
 
     try {
       // client_content is no longer needed here, so it's removed.
-      final rows = await _client.from('booking').select('''
-        booking_id,
-        event_type,
-        location,
-        booking_status,
-        client ( users ( full_name ) ),
-        booking_slot ( time_slot ( slot_date, start_time, end_time ) )
-      ''');
+      final rows = await _client.rpc('tmv_admin_get_bookings');
 
       final list = List<Map<String, dynamic>>.from(rows);
 
@@ -104,7 +97,7 @@ class AdminDashboardViewModel extends ChangeNotifier {
         result.add(
           UpcomingBooking(
             id: b['booking_id'],
-            clientName: b['client']?['users']?['full_name'] ?? 'Unknown client',
+            clientName: b['client']?['user']?['full_name'] ?? 'Unknown client',
             eventType: b['event_type'] ?? 'Event',
             location: b['location'],
             date: date,

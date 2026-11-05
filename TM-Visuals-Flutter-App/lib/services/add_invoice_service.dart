@@ -15,6 +15,7 @@ String? validateInvoicePdf(String name, Uint8List bytes) {
 
 abstract class InvoiceDataSource {
   Future<List<InvoiceBooking>> loadBookings();
+  Future<List<AddInvoiceModel>> loadInvoices();
   Future<AddInvoiceModel> uploadInvoice({
     required String bookingId,
     required String reference,
@@ -35,7 +36,7 @@ class AddInvoiceService implements InvoiceDataSource {
     final user = client.auth.currentUser;
     if (user == null) throw const AuthException('Please sign in.');
     final row = await client
-        .from('admin')
+        .from('tmv_admin')
         .select('admin_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -50,18 +51,18 @@ class AddInvoiceService implements InvoiceDataSource {
     final results = <InvoiceBooking>[];
     for (var offset = 0; ; offset += 200) {
       final rows = await client
-          .from('booking')
+          .from('tmv_booking')
           .select(
-            'booking_id,event_type,booking_status,client:client(users(full_name))',
+            'booking_id,event_type,booking_status,tmv_client(tmv_user(full_name))',
           )
           .order('created_at', ascending: false)
           .order('booking_id')
           .range(offset, offset + 199);
       results.addAll(
         rows.map((row) {
-          final name =
-              ((row['client'] as Map?)?['users'] as Map?)?['full_name'] ??
-              'Client';
+          final clientRow = row['tmv_client'] as Map?;
+          final user = clientRow?['tmv_user'] as Map?;
+          final name = user?['full_name'] ?? 'Client';
           final id = row['booking_id'] as String;
           return InvoiceBooking(
             id: id,
@@ -75,9 +76,22 @@ class AddInvoiceService implements InvoiceDataSource {
     return results;
   }
 
+  @override
+  Future<List<AddInvoiceModel>> loadInvoices() async {
+    final rows = await client
+        .from('tmv_invoice')
+        .select('invoice_id,admin_id,booking_id,reference,file_path,created_at')
+        .order('created_at', ascending: false);
+    return rows
+        .map<AddInvoiceModel>(
+          (row) => AddInvoiceModel.fromMap(Map<String, dynamic>.from(row)),
+        )
+        .toList();
+  }
+
   Future<AddInvoiceModel?> _find(String id) async {
     final row = await client
-        .from('invoice')
+        .from('tmv_invoice')
         .select()
         .eq('invoice_id', id)
         .maybeSingle();
@@ -148,7 +162,7 @@ class AddInvoiceService implements InvoiceDataSource {
         }
       }
       final row = await client
-          .from('invoice')
+          .from('tmv_invoice')
           .insert({
             'invoice_id': invoiceId,
             'admin_id': admin,

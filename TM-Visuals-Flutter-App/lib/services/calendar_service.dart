@@ -31,9 +31,9 @@ class CalendarService implements CalendarDataSource {
     final slots = <CalendarSlot>[];
     for (var offset = 0; ; offset += 200) {
       final rows = await client
-          .from('time_slot')
+          .from('tmv_time_slot')
           .select(
-            'time_slot_id,slot_date,start_time,end_time,booking_slot(selection_status,booking:booking(booking_id,event_type,location,booking_status,hold_expires_at,client:client(users(full_name))))',
+            'time_slot_id,slot_date,start_time,end_time,tmv_booking_slot(selection_status,expires_at,tmv_booking(booking_id,event_type,location,booking_status,tmv_client(tmv_user(full_name))))',
           )
           .gte('slot_date', dateKey(from))
           .lt('slot_date', dateKey(until))
@@ -55,14 +55,13 @@ class CalendarService implements CalendarDataSource {
     final until = dateKey(DateTime(month.year, month.month + 1));
     final values = await Future.wait<dynamic>([
       client.rpc(
-        'get_calendar_availability',
-        params: {
-          'p_start_date': from,
-          'p_end_date': dateKey(DateTime(month.year, month.month + 1, 0)),
-        },
+        'tmv_get_month_availability',
+        params: {'p_year': month.year, 'p_month': month.month},
       ),
       _blockedTimes(from, until),
     ]);
+    final availability = values[0] as Map<String, dynamic>;
+    final days = availability['days'] as Map<String, dynamic>;
     final blocks = <String, List<BlockedTimeRange>>{};
     for (final row in values[1] as List) {
       int minutes(String value) {
@@ -78,11 +77,11 @@ class CalendarService implements CalendarDataSource {
       );
     }
     return {
-      for (final row in values[0] as List)
-        row['slot_date'] as String: CalendarDayAvailability(
-          available: row['is_available'] as bool,
-          status: row['status'] as String,
-          blockedTimes: List.unmodifiable(blocks[row['slot_date']] ?? []),
+      for (final entry in days.entries)
+        entry.key: CalendarDayAvailability(
+          available: entry.value['status'] != 'blocked',
+          status: entry.value['status'] as String,
+          blockedTimes: List.unmodifiable(blocks[entry.key] ?? []),
         ),
     };
   }
@@ -94,7 +93,7 @@ class CalendarService implements CalendarDataSource {
     final result = <Map<String, dynamic>>[];
     for (var offset = 0; ; offset += 200) {
       final rows = await client
-          .from('date_time_block')
+          .from('tmv_date_time_block')
           .select('slot_date,start_time,end_time')
           .gte('slot_date', from)
           .lt('slot_date', until)
@@ -117,9 +116,9 @@ class CalendarService implements CalendarDataSource {
     String time(int value) =>
         '${(value ~/ 60).toString().padLeft(2, '0')}:${(value % 60).toString().padLeft(2, '0')}';
     await client.rpc(
-      'admin_save_date_availability',
+      'tmv_admin_save_date_availability',
       params: {
-        'p_day': dateKey(date),
+        'p_date': dateKey(date),
         'p_available': available,
         'p_blocks': [
           for (final range in blockedTimes)

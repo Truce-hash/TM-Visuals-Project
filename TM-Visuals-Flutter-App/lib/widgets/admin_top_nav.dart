@@ -55,11 +55,11 @@ class AdminTopNav extends StatelessWidget implements PreferredSizeWidget {
           alignment: Alignment.center,
           children: [
             IconButton(
-              tooltip: 'Bookings',
+              tooltip: 'Notifications',
               icon: const Icon(Icons.notifications_none, size: 24),
               onPressed: () {
-                if (ModalRoute.of(context)?.settings.name != '/bookings') {
-                  Navigator.of(context).pushNamed('/bookings');
+                if (ModalRoute.of(context)?.settings.name != '/notifications') {
+                  Navigator.of(context).pushNamed('/notifications');
                 }
               },
             ),

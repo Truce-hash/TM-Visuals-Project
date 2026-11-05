@@ -53,19 +53,19 @@ class CalendarSlot {
     date: DateTime.parse(row['slot_date'] as String),
     start: row['start_time'] as String,
     end: row['end_time'] as String,
-    bookings: (row['booking_slot'] as List? ?? []).map((link) {
-      final b = link['booking'] as Map<String, dynamic>;
+    bookings: (row['tmv_booking_slot'] as List? ?? []).map((link) {
+      final b = link['tmv_booking'] as Map<String, dynamic>;
       return CalendarBooking(
         id: b['booking_id'] as String,
         client:
-            ((b['client'] as Map?)?['users'] as Map?)?['full_name']
+            ((b['tmv_client'] as Map?)?['tmv_user'] as Map?)?['full_name']
                 as String? ??
             'Client',
         event: b['event_type'] as String? ?? 'Booking',
         location: b['location'] as String? ?? '',
         status: b['booking_status'] as String? ?? 'unknown',
         selectionStatus: link['selection_status'] as String? ?? 'unknown',
-        holdExpiresAt: DateTime.tryParse(b['hold_expires_at'] as String? ?? ''),
+        holdExpiresAt: DateTime.tryParse(link['expires_at'] as String? ?? ''),
       );
     }).toList(),
   );

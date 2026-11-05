@@ -127,7 +127,7 @@ namespace TMVisualsWebApp.Services
         {
             using var document = await SendAsync(
                 HttpMethod.Get,
-                "service?select=service_id,service_name&is_active=eq.true",
+                "tmv_service?select=service_id,service_name&is_active=eq.true",
                 accessToken,
                 body: null,
                 cancellationToken);
@@ -255,7 +255,7 @@ namespace TMVisualsWebApp.Services
         {
             using var document = await SendAsync(
                 HttpMethod.Post,
-                "rpc/cancel_my_booking",
+                "rpc/tmv_cancel_my_booking",
                 accessToken,
                 new { p_booking_id = bookingId },
                 cancellationToken);
@@ -272,7 +272,7 @@ namespace TMVisualsWebApp.Services
         {
             using var document = await SendAsync(
                 HttpMethod.Get,
-                $"users?select=full_name,email,phone&user_id=eq.{userId}",
+                $"tmv_user?select=full_name,email,phone&auth_user_id=eq.{userId}",
                 accessToken,
                 body: null,
                 cancellationToken);
@@ -297,7 +297,7 @@ namespace TMVisualsWebApp.Services
         {
             using var document = await SendAsync(
                 HttpMethod.Post,
-                "rpc/update_my_profile",
+                "rpc/tmv_update_my_profile",
                 accessToken,
                 new { p_full_name = fullName, p_phone = phone },
                 cancellationToken);

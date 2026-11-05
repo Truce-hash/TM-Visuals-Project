@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:photography_flutter_application/views/admin_sign_in.dart';
 import '../widgets/admin_bottom_nav.dart';
 import '../widgets/admin_top_nav.dart';
+import '../viewmodels/bookingList_viewmodel.dart';
+import 'booking_details.dart';
 
 // Fix this path to wherever your viewmodel file lives.
 import 'package:photography_flutter_application/viewmodels/admin_view_model.dart';
@@ -33,9 +36,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.dispose();
   }
 
-  // Opens another screen, then refreshes the counts when the admin returns.
-  Future<void> _openAndRefresh(Widget screen) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  Future<void> _openBooking(String bookingId) async {
+    final bookings = context.read<BookingsViewModel>();
+    if (bookings.bookingById(bookingId) == null) await bookings.load();
+    if (!mounted) return;
+    if (bookings.state == LoadState.error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not load this booking: ${bookings.error ?? 'Unknown error.'}',
+          ),
+        ),
+      );
+      return;
+    }
+    if (bookings.bookingById(bookingId) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This booking is no longer available.')),
+      );
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BookingDetailScreen(bookingId: bookingId),
+      ),
+    );
     if (mounted) _vm.load();
   }
 
@@ -122,10 +148,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         icon: Icons.pending_actions,
                         label: 'Pending Bookings',
                         value: '${_vm.pendingBookings}',
-                        // Optional: make tappable once you have a bookings screen
-                        // onTap: () => _openAndRefresh(
-                        //   const AdminBookingsScreen(initialFilter: 'pending'),
-                        // ),
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/bookings'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -174,7 +198,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 if (_vm.upcoming.isEmpty)
                   const _EmptyUpcomingCard()
                 else
-                  ..._vm.upcoming.map((b) => _UpcomingBookingCard(booking: b)),
+                  ..._vm.upcoming.map(
+                    (b) => _UpcomingBookingCard(
+                      booking: b,
+                      onTap: () => _openBooking(b.id),
+                    ),
+                  ),
               ],
             ),
           );
@@ -322,8 +351,9 @@ class _EmptyUpcomingCard extends StatelessWidget {
 
 class _UpcomingBookingCard extends StatelessWidget {
   final UpcomingBooking booking;
+  final VoidCallback onTap;
 
-  const _UpcomingBookingCard({required this.booking});
+  const _UpcomingBookingCard({required this.booking, required this.onTap});
 
   static const _months = [
     'Jan',
@@ -363,44 +393,58 @@ class _UpcomingBookingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AdminDashboard.accentColor, width: 1),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.hourglass_top_outlined,
-            color: AdminDashboard.accentColor,
-            size: 28,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${booking.clientName} • ${booking.eventType}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.hourglass_top_outlined,
+                color: AdminDashboard.accentColor,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${booking.clientName} • ${booking.eventType}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_dateText$_timeText',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                    if (booking.location != null &&
+                        booking.location!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        booking.location!,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$_dateText$_timeText',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                if (booking.location != null &&
-                    booking.location!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    booking.location!,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                ],
-              ],
-            ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white54),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

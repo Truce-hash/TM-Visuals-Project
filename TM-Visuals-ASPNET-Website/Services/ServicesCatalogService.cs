@@ -32,7 +32,7 @@ namespace TMVisualsWebApp.Services
 
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                $"{supabaseUrl}/rest/v1/service?select=service_name,description&is_active=eq.true&order=created_at.desc");
+                $"{supabaseUrl}/rest/v1/tmv_service?select=service_name,description&is_active=eq.true&order=created_at.desc");
             request.Headers.TryAddWithoutValidation("apikey", publicKey);
             request.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", publicKey);

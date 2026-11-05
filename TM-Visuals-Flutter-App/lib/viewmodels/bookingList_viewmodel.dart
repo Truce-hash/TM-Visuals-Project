@@ -58,6 +58,7 @@ class BookingsViewModel extends ChangeNotifier {
   String? get error => _error;
   BookingFilter get filter => _filter;
   String get query => _query;
+  List<BookingList> get allBookings => List.unmodifiable(_bookings);
   bool isBusy(String id) => _busy.contains(id);
 
   int countFor(BookingFilter f) => _bookings.where(f.test).length;
@@ -239,9 +240,8 @@ class BookingsViewModel extends ChangeNotifier {
     _bookings = [for (final b in _bookings) b.id == fresh.id ? fresh : b];
   }
 
-  String _describe(Object e) => e is PostgrestException
-      ? e.message
-      : 'Couldn\'t reach the server. Check your connection and try again.';
+  String _describe(Object e) =>
+      e is PostgrestException ? e.message : e.toString();
 
   @override
   void notifyListeners() {

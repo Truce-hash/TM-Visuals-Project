@@ -131,7 +131,9 @@ namespace TMVisualsWebApp.Controllers
 
 
             NormalizeBooking(booking);
-            ValidateBooking(booking);
+            ValidateBooking(
+                booking,
+                ViewBag.Services as List<string> ?? new List<string>());
 
             if (!ModelState.IsValid)
             {
@@ -167,19 +169,30 @@ namespace TMVisualsWebApp.Controllers
                 return Challenge();
             }
             catch (SupabaseApiException error) when (
-                error.Code == "P0001" && error.DatabaseMessage == "Client profile not found")
+                error.Code == "P0001" &&
+                error.DatabaseMessage?.Contains(
+                    "not connected to a booking profile",
+                    StringComparison.OrdinalIgnoreCase) == true)
             {
                 ModelState.AddModelError(string.Empty,
                     "This account does not have a client profile. Sign in with a client account to make a booking.");
                 return View(booking);
             }
-            catch (SupabaseApiException error) when (error.Code is "P0001" or "23514" or "23P01")
+            catch (SupabaseApiException error) when (
+                error.Code == "P0001" &&
+                error.DatabaseMessage?.Contains("time", StringComparison.OrdinalIgnoreCase) == true)
             {
                 ModelState.AddModelError(
                     nameof(booking.Date),
-                    "That time is no longer available. " +
-                    "Please refresh the calendar and choose another time. Use available slot boundaries (normally every 30 minutes).");
+                    error.DatabaseMessage);
 
+                return View(booking);
+            }
+            catch (SupabaseApiException error) when (
+                error.Code == "P0001" &&
+                error.DatabaseMessage?.Contains("date", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                ModelState.AddModelError(nameof(booking.Date), error.DatabaseMessage);
                 return View(booking);
             }
             catch (Exception error) when (error is HttpRequestException or SupabaseApiException or InvalidOperationException or JsonException)
@@ -517,16 +530,18 @@ namespace TMVisualsWebApp.Controllers
         }
 
         // ValidateBooking checks the Booking object for additional validation rules that are not covered by data annotations.
-        private void ValidateBooking(Booking booking)
+        private void ValidateBooking(Booking booking, IReadOnlyCollection<string> activeServices)
         {
             // AcceptTerms is validated by the MustBeTrue attribute on Booking.
 
             if (!string.IsNullOrWhiteSpace(booking.Service) &&
-                !BookingOptions.Services.Contains(booking.Service))
+                !activeServices.Contains(
+                    booking.Service.Trim(),
+                    StringComparer.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(
                     nameof(booking.Service),
-                    "Please select a valid service.");
+                    "Please select an active service.");
             }
 
             if (!string.IsNullOrWhiteSpace(booking.EventType) &&
