@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'admin_widgets.dart';
 
@@ -8,11 +9,11 @@ class AdminBottomNav extends StatelessWidget {
   final int currentIndex;
 
   static const routes = [
-    '/',             // 0 Home
-    '/bookings',     // 1 Bookings
-    '/calendar',     // 2 Calendar
-    '/admin-profile',// 3 Profile
-    '/more',         // 4 More
+    '/',              // 0 Home
+    '/bookings',      // 1 Bookings
+    '/calendar',      // 2 Calendar
+    '/admin-profile', // 3 Profile
+    '/more',          // 4 More
   ];
 
   @override
@@ -22,9 +23,15 @@ class AdminBottomNav extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: adminGold,
       selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.black,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
+      unselectedItemColor: Colors.black87,
+
+      // Display labels underneath all navigation icons.
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+
+      selectedFontSize: 12,
+      unselectedFontSize: 11,
+
       onTap: (index) {
         final target = routes[index];
         if (ModalRoute.of(context)?.settings.name == target) return;
